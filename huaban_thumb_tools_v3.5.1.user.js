@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         花瓣网 - 原生右键+原图下载+商用标签
 // @namespace    https://huaban.com/
-// @version      1.1.0
+// @version      1.1.1
 // @description  ① 恢复浏览器/系统的原生右键菜单（可在脚本下拉菜单【设置】中关闭）；② 识别花瓣网商用素材（列表/瀑布流卡片“版权素材”徽标、详情页主图授权标识、以及“商用素材”区块缩略图），在图片上叠加红色描边并显示胶囊形“商用”标签；③ 鼠标经过任意缩略图、以及详情页主图（#pin_detail 内的大图）时显示胶囊形绿色【下载】按钮，点击一键下载“原始 master 文件”（与详情页大图“右键→存储为”一致，最清晰、无 CDN 二次压缩）。点击脚本下拉菜单（油猴菜单）中的【设置】可打开设置弹框，实时开关【开启原生右键菜单】。
 // @author       liteyais
 // @match        *://huaban.com/*
@@ -151,6 +151,11 @@
     dlBorder: '1px solid #00D839',         // 下载按钮描边
     dlRadius: '200px',                     // 下载按钮圆角（胶囊形）
     dlHoverBg: '#008E24',                  // 下载按钮悬停底色（加深）
+
+    // —— 下载/商用按钮：统一尺寸 + 垂直间距 ——
+    btnW: '56px',               // 两按钮统一宽度
+    btnH: '28px',               // 两按钮统一高度
+    btnGap: 18,                 // 按钮中心相对图片中心的偏移(px)；两按钮间距 = btnGap*2 - 28 = 8px
     // 兜底派生尺寸（仅在原始 master 取不到时才用）：这些是 CDN 二次编码的 webp，可能更大且更糊
     sizeOrder: ['_fw1200webp', '_fw960webp', '_fw480webp', '_fw240webp'],
 
@@ -178,8 +183,8 @@
         // 顶层下载按钮层：固定在 body 顶端，压过站点所有悬浮层
         '.' + LAYER_CLASS + '{position:fixed;inset:0;pointer-events:none;z-index:2147483647;}',
         '.' + DL_CLASS + '{position:fixed;display:none;pointer-events:auto;z-index:2147483647;',
-        'background:' + CONFIG.dlBg + ';border:' + CONFIG.dlBorder + ';color:#fff;font-size:12px;line-height:1;padding:3px 2px;',
-        'min-width:40px;text-align:center;box-sizing:border-box;',
+        'background:' + CONFIG.dlBg + ';border:' + CONFIG.dlBorder + ';color:#fff;font-size:12px;line-height:1;',
+        'width:' + CONFIG.btnW + ';height:' + CONFIG.btnH + ';display:flex;align-items:center;justify-content:center;box-sizing:border-box;',
         'border-radius:' + CONFIG.dlRadius + ';cursor:pointer;white-space:nowrap;user-select:none;font-weight:600;',
         'font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;}',
         '.' + DL_CLASS + ':hover{background:' + CONFIG.dlHoverBg + ';}',
@@ -188,9 +193,10 @@
         'border-radius:' + CONFIG.cornerRadius + ';',
         'box-shadow:inset 0 0 0 ' + CONFIG.borderWidth + ' ' + CONFIG.borderColor + ';}',
         // 商用：图片中央“商用”标签
-        '.' + LABEL_CLASS + '{position:absolute;left:50%;top:50%;transform:translate(-50%,calc(-50% - 14px));z-index:9999;pointer-events:none;',
+        '.' + LABEL_CLASS + '{position:absolute;left:50%;top:50%;transform:translate(-50%,calc(-50% - ' + CONFIG.btnGap + 'px));z-index:9999;pointer-events:none;',
         'background:' + CONFIG.labelBg + ';border:' + CONFIG.labelBorder + ';color:' + CONFIG.labelColor + ';font-size:12px;line-height:1;',
-        'padding:4px 10px;border-radius:' + CONFIG.labelRadius + ';font-weight:700;box-sizing:border-box;',
+        'width:' + CONFIG.btnW + ';height:' + CONFIG.btnH + ';display:flex;align-items:center;justify-content:center;box-sizing:border-box;',
+        'border-radius:' + CONFIG.labelRadius + ';font-weight:700;',
         'font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;}',
         // 提示条
         '.hb-toast{position:fixed;left:50%;bottom:40px;transform:translateX(-50%);z-index:2147483647;',
@@ -288,7 +294,7 @@
       const r = box.getBoundingClientRect();   // 以图片自身矩形为锚点，避免容器与图片尺寸不一致导致按钮偏移
       if (!r.width || !r.height) return;            // 被回收/尺寸为 0 时跳过，避免跳到左上角
       const left = Math.max(4, Math.round(r.left + r.width / 2 - BTN_W / 2));
-      const top = Math.max(4, Math.round(r.top + r.height / 2 - BTN_H / 2 + 14));
+      const top = Math.max(4, Math.round(r.top + r.height / 2 - BTN_H / 2 + CONFIG.btnGap));
       if (dlBtn.style.display !== 'block') dlBtn.style.display = 'block';
       if (left !== lastLeft) { dlBtn.style.left = left + 'px'; lastLeft = left; }
       if (top !== lastTop) { dlBtn.style.top = top + 'px'; lastTop = top; }
