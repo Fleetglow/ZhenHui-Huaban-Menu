@@ -1,15 +1,15 @@
 // ==UserScript==
-// @name         花瓣网 - 原生右键+下载最高清图+商用明示.js
+// @name         花瓣网 - 原生右键+原图下载+商用标签
 // @namespace    https://huaban.com/
-// @version      1.0.0
-// @description  ① 恢复浏览器/系统的原生右键菜单（可在页面右下角【设置】中关闭）；② 识别花瓣网商用素材（列表/瀑布流卡片“版权素材”徽标、详情页主图授权标识、以及“商用素材”区块缩略图），在图片上叠加红色描边并显示“商用”标签；③ 鼠标经过任意缩略图、以及详情页主图（#pin_detail 内的大图）时显示绿色【下载】按钮，点击一键下载“原始 master 文件”（与详情页大图“右键→存储为”一致，最清晰、无 CDN 二次压缩）。页面右下角【设置】按钮可打开设置弹框，实时开关【开启原生右键菜单】。
+// @version      1.1.0
+// @description  ① 恢复浏览器/系统的原生右键菜单（可在脚本下拉菜单【设置】中关闭）；② 识别花瓣网商用素材（列表/瀑布流卡片“版权素材”徽标、详情页主图授权标识、以及“商用素材”区块缩略图），在图片上叠加红色描边并显示胶囊形“商用”标签；③ 鼠标经过任意缩略图、以及详情页主图（#pin_detail 内的大图）时显示胶囊形绿色【下载】按钮，点击一键下载“原始 master 文件”（与详情页大图“右键→存储为”一致，最清晰、无 CDN 二次压缩）。点击脚本下拉菜单（油猴菜单）中的【设置】可打开设置弹框，实时开关【开启原生右键菜单】。
 // @author       liteyais
 // @match        *://huaban.com/*
 // @match        *://*.huaban.com/*
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgZmlsbD0ibm9uZSI+PGcgY2xpcC1wYXRoPSJ1cmwoI2EpIj48bWFzayBpZD0iYiIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIyIiB4PSI1IiB5PSIxMiIgbWFza1VuaXRzPSJ1c2VyU3BhY2VPblVzZSIgc3R5bGU9Im1hc2stdHlwZTpsdW1pbmFuY2UiPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNC43MjUgMTIuOTY4SDV2MjAuMzZoMTkuNzI1eiIvPjwvbWFzaz48ZyBtYXNrPSJ1cmwoI2IpIj48cGF0aCBmaWxsPSJ1cmwoI2MpIiBmaWxsLW9wYWNpdHk9Ii42OCIgZD0iTTUuMDc2IDE3Ljk0MWMwIDcuNzk1IDYuMzI3IDE0LjExNSAxNC4xMyAxNC4xMTVoNC45OHYtNC45NzNjMC03Ljc5NS02LjMyOC0xNC4xMTUtMTQuMTMtMTQuMTE1aC00Ljk4eiIvPjxwYXRoIGZpbGw9InVybCgjZCkiIGQ9Ik0xMy4yMSAyNy44OGM2LjA1NSAwIDEwLjk2NS01LjAzIDEwLjk2NS0xMS4wNjJ2LTMuODVIMjAuMzFjLTYuMDU1IDAtMTEuMDU1IDQuODkyLTExLjA1NSAxMC45MjR2My45ODl6Ii8+PC9nPjxwYXRoIGZpbGw9IiMwMDAiIGQ9Ik03LjA5NiA5LjkxNGEuOTM3LjkzNyAwIDAgMCAuNjg5IDEuMzU2YzMuNzk1LjU4MyA5LjgyMSAxLjM2MyAxMS4wOC45NTIuNjE4LS4yMDMgMS43NDMtLjQ3NiAyLjk0Mi0uNjdhMjMgMjMgMCAwIDEtLjI3NC0yLjAwNGMtMi4xMDIuMTctMTAuMjM0LS44NC0xNC4wMzctMS4zNjUtLjEzMS44MzctLjI2NyAxLjQ3LS40IDEuNzMiLz48cGF0aCBmaWxsPSIjRkYyQjJCIiBkPSJNMjEuOTk1IDMuMjU0Yy4xODMtLjQ5My4wNy0xLjA3Ny0uMzkyLTEuMzI2QzE5LjA5MS41NzYgMTQuMDAxLS43NTIgOC45NDIuNTAyYS45Ny45NyAwIDAgMC0uNzIyLjg3MWMtLjE1NSAxLjk4NS0uNDI3IDQuOTE2LS43MjQgNi44MSAzLjgwMy41MjYgMTEuOTM1IDEuNTM1IDE0LjAzNyAxLjM2NS0uMTg3LTEuOTgtLjE5Ni00LjUyLjQ2Mi02LjI5NE03LjA5NiA5LjkxNGMtMS4xNzctLjM4NS0zLjc2Ni0uOTIzLTQuNzA4IDAtMS4xNzcgMS4xNTQuNTg5IDIuODg1IDEuNzY1IDMuNDYxIDEuMS41NCAxMC4wODMgMS40OSAxNy45NzguNjcgMS4wNi0uMTEgMi4xMzQuMTIzIDMuMDI2LjcwNi4yNC4xNTYuNTQuMTkuODAzLjA4IDEuMDIzLS40MjkgMi40NDQtMS4xOTUgMS45MzItMi42MS0uNjI3LTEuNzMtMy44Ni0xLjAzLTYuMDg1LS42Ny0xLjItLjE5NS0yLjMyNC40NjgtMi45NDIuNjctMS4yNTkuNDEyLTcuMjg1LS4zNjgtMTEuMDgtLjk1MWEuOTM3LjkzNyAwIDAgMS0uNjktMS4zNTYiLz48L2c+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJjIiB4MT0iMjAuMDEzIiB4Mj0iOS4xNTYiIHkxPSIxNy4wOTYiIHkyPSIyNy45MzYiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj48c3RvcCBzdG9wLWNvbG9yPSIjRkYyODRCIiBzdG9wLW9wYWNpdHk9Ii43NiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0ZGMjg0QiIgc3RvcC1vcGFjaXR5PSIuMjQiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0iZCIgeDE9IjI0LjE4NSIgeDI9IjkuNDIyIiB5MT0iMTIuOTY4IiB5Mj0iMjcuNjQ5IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHN0b3Agc3RvcC1jb2xvcj0iI0ZGMjg0QiIgc3RvcC1vcGFjaXR5PSIuODQiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNGRjI4NEIiIHN0b3Atb3BhY2l0eT0iLjE2Ii8+PC9saW5lYXJHcmFkaWVudD48Y2xpcFBhdGggaWQ9ImEiPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0wIDBoMzJ2MzJIMHoiLz48L2NsaXBQYXRoPjwvZGVmcz48L3N2Zz4=
 // @license      MIT
 // @run-at       document-start
-// @grant        none
+// @grant        GM_registerMenuCommand
 // ==/UserScript==
 
 (function () {
@@ -139,16 +139,18 @@
     borderColor: 'rgba(255,0,0,1)',        // 红框描边（亮红、不透明）
     borderWidth: '3px',
     label: '商用',
-    labelBg: '#FC0000',                    // 标签底色
-    labelBorder: '1px solid #C70000',      // 标签描边
+    labelBg: '#E20000',                    // 标签底色
+    labelBorder: '1px solid #FF4848',      // 标签描边
+    labelRadius: '200px',                  // 标签圆角（胶囊形）
     labelColor: '#ffffff',
     cornerRadius: '12px',                  // 红框圆角
 
     // —— 下载按钮 ——
     dlText: '下载',
-    dlBg: '#00D538',                       // 下载按钮底色
-    dlBorder: '1px solid #00EE3F',         // 下载按钮描边
-    dlHoverBg: '#00C031',                  // 下载按钮悬停底色（加深）
+    dlBg: '#00A92D',                       // 下载按钮底色
+    dlBorder: '1px solid #00D839',         // 下载按钮描边
+    dlRadius: '200px',                     // 下载按钮圆角（胶囊形）
+    dlHoverBg: '#008E24',                  // 下载按钮悬停底色（加深）
     // 兜底派生尺寸（仅在原始 master 取不到时才用）：这些是 CDN 二次编码的 webp，可能更大且更糊
     sizeOrder: ['_fw1200webp', '_fw960webp', '_fw480webp', '_fw240webp'],
 
@@ -178,7 +180,7 @@
         '.' + DL_CLASS + '{position:fixed;display:none;pointer-events:auto;z-index:2147483647;',
         'background:' + CONFIG.dlBg + ';border:' + CONFIG.dlBorder + ';color:#fff;font-size:12px;line-height:1;padding:3px 2px;',
         'min-width:40px;text-align:center;box-sizing:border-box;',
-        'border-radius:6px;cursor:pointer;white-space:nowrap;user-select:none;font-weight:600;',
+        'border-radius:' + CONFIG.dlRadius + ';cursor:pointer;white-space:nowrap;user-select:none;font-weight:600;',
         'font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;}',
         '.' + DL_CLASS + ':hover{background:' + CONFIG.dlHoverBg + ';}',
         // 商用：纯红描边
@@ -188,7 +190,7 @@
         // 商用：图片中央“商用”标签
         '.' + LABEL_CLASS + '{position:absolute;left:50%;top:50%;transform:translate(-50%,calc(-50% - 14px));z-index:9999;pointer-events:none;',
         'background:' + CONFIG.labelBg + ';border:' + CONFIG.labelBorder + ';color:' + CONFIG.labelColor + ';font-size:12px;line-height:1;',
-        'padding:4px 8px;border-radius:6px;font-weight:700;box-sizing:border-box;',
+        'padding:4px 10px;border-radius:' + CONFIG.labelRadius + ';font-weight:700;box-sizing:border-box;',
         'font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;}',
         // 提示条
         '.hb-toast{position:fixed;left:50%;bottom:40px;transform:translateX(-50%);z-index:2147483647;',
@@ -492,7 +494,7 @@
   }
 
   /* =====================================================================
-   * 模块三：设置按钮 + 设置弹框
+   * 模块三：设置菜单项 + 设置弹框（入口为脚本下拉菜单，非页面悬浮按钮）
    * 所有类名/ID 均带 hbns- 前缀，避免与站点或其他脚本的 CSS/JS 重名冲突
    * ===================================================================== */
   let hbnsRoot = null;
@@ -501,12 +503,6 @@
     const style = document.createElement('style');
     style.id = 'hbns-style';
     style.textContent = [
-      // —— 设置按钮 ——
-      '.hbns-btn{position:fixed;bottom:18px;right:18px;z-index:2147483646;display:flex;align-items:center;gap:6px;',
-      'padding:8px 14px;border:none;border-radius:20px;background:rgba(0,0,0,.72);color:#fff;font-size:13px;font-weight:600;',
-      'cursor:pointer;font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;',
-      'box-shadow:0 2px 10px rgba(0,0,0,.28);user-select:none;}',
-      '.hbns-btn:hover{background:rgba(0,0,0,.85);}',
       // —— 遮罩 ——
       '.hbns-overlay{position:fixed;inset:0;z-index:2147483646;background:rgba(0,0,0,.35);display:none;}',
       // —— 弹框 ——
@@ -535,7 +531,6 @@
     const root = document.createElement('div');
     root.id = 'hbns-root';
     root.innerHTML = [
-      '<button type="button" class="hbns-btn">⚙ 设置</button>',
       '<div class="hbns-overlay"></div>',
       '<div class="hbns-dialog">',
       '  <div class="hbns-head"><span class="hbns-title">插件设置</span><button type="button" class="hbns-close">×</button></div>',
@@ -550,7 +545,6 @@
     (document.body || document.documentElement).appendChild(root);
     hbnsRoot = root;
 
-    const btn = root.querySelector('.hbns-btn');
     const overlay = root.querySelector('.hbns-overlay');
     const dialog = root.querySelector('.hbns-dialog');
     const closeBtn = root.querySelector('.hbns-close');
@@ -566,9 +560,12 @@
       dialog.style.display = 'none';
     }
 
-    btn.addEventListener('click', open);
     overlay.addEventListener('click', close);
     closeBtn.addEventListener('click', close);
+    // 脚本下拉菜单（油猴菜单）中的【设置】项：点击打开设置弹框
+    if (typeof GM_registerMenuCommand === 'function') {
+      try { GM_registerMenuCommand('设置', open); } catch (e) {}
+    }
     swInput.addEventListener('change', function () {
       setPref(PREF_KEY_NATIVE_MENU, swInput.checked);
       if (swInput.checked) enableNativeMenu(); else disableNativeMenu();
