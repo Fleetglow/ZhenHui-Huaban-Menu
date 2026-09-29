@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         花瓣网 - 原生右键+原图下载+商用标签
 // @namespace    https://huaban.com/
-// @version      1.1.2
-// @description  ① 恢复浏览器/系统的原生右键菜单（可在脚本下拉菜单【设置】中关闭）；② 识别花瓣网商用素材（列表/瀑布流卡片“版权素材”徽标、详情页主图授权标识、以及“商用素材”区块缩略图），在图片上叠加红色描边并显示胶囊形“商用”标签；③ 鼠标经过任意缩略图、以及详情页主图（#pin_detail 内的大图）时显示胶囊形绿色【下载】按钮，点击一键下载“原始 master 文件”（与详情页大图“右键→存储为”一致，最清晰、无 CDN 二次压缩）。点击脚本下拉菜单（油猴菜单）中的【设置】可打开设置弹框，实时开关【开启原生右键菜单】。
+// @version      1.0.3
+// @description  ① 恢复原生右键菜单 （可设置中开关）② 商用素材自动标记 （红描边 + 胶囊"商用"标签）③悬停一键下载原图 
 // @author       liteyais
 // @match        *://huaban.com/*
 // @match        *://*.huaban.com/*
@@ -10,8 +10,8 @@
 // @license      MIT
 // @homepageURL  https://github.com/liteyais/huaban-userscripts
 // @supportURL   https://github.com/liteyais/huaban-userscripts/issues
-// @downloadURL  https://raw.githubusercontent.com/liteyais/huaban-userscripts/main/huaban_thumb_tools_v3.5.1.user.js
-// @updateURL    https://raw.githubusercontent.com/liteyais/huaban-userscripts/main/huaban_thumb_tools_v3.5.1.user.js
+// @downloadURL  https://raw.githubusercontent.com/liteyais/huaban-userscripts/main/huaban-userscripts.js
+// @updateURL    https://raw.githubusercontent.com/liteyais/huaban-userscripts/main/huaban-userscripts.js
 // @run-at       document-start
 // @grant        GM_registerMenuCommand
 // ==/UserScript==

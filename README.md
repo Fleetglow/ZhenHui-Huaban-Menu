@@ -1,6 +1,6 @@
 # 花瓣网 - 原生右键 + 原图下载 + 商用标签
 
-> 作者：liteyais ｜ 版本：v1.1.2 ｜ 协议：MIT
+> 作者：liteyais ｜ 版本：v1.0.3 ｜ 协议：MIT
 > 仓库：https://github.com/liteyais/huaban-userscripts
 
 一款用于花瓣网（huaban.com）的 Tampermonkey 用户脚本，集三个功能于一体，全部在图片上以清晰的视觉反馈呈现。
@@ -22,13 +22,14 @@
 ## 安装使用
 
 1. 安装 [Tampermonkey](https://www.tampermonkey.net/) 浏览器扩展；
-2. 打开 [huaban_thumb_tools_v3.5.1.user.js](https://raw.githubusercontent.com/liteyais/huaban-userscripts/main/huaban_thumb_tools_v3.5.1.user.js)，Tampermonkey 会提示安装；
+2. 打开 [huaban-userscripts.js](https://raw.githubusercontent.com/liteyais/huaban-userscripts/main/huaban-userscripts.js)，Tampermonkey 会提示安装；
 3. 打开花瓣网任意页面即可使用；设置开关位于脚本下拉菜单 →【设置】。
 
 ## 更新记录
 
 | 版本 | 说明 |
 | ---- | ---- |
+| v1.0.3 | 脚本重命名为 `huaban-userscripts.js`，更新安装/更新地址 |
 | v1.1.2 | 修复下载按钮文字居中；头部补充 GitHub 仓库/更新地址信息；新增 README |
 | v1.1.1 | 下载与商用按钮统一尺寸（56×28px），两按钮间距 8px |
 | v1.1.0 | 设置入口改为脚本下拉菜单；商用标签/下载按钮改为胶囊形配色 |
