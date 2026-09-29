@@ -1,13 +1,17 @@
 // ==UserScript==
 // @name         花瓣网 - 原生右键+原图下载+商用标签
 // @namespace    https://huaban.com/
-// @version      1.1.1
+// @version      1.1.2
 // @description  ① 恢复浏览器/系统的原生右键菜单（可在脚本下拉菜单【设置】中关闭）；② 识别花瓣网商用素材（列表/瀑布流卡片“版权素材”徽标、详情页主图授权标识、以及“商用素材”区块缩略图），在图片上叠加红色描边并显示胶囊形“商用”标签；③ 鼠标经过任意缩略图、以及详情页主图（#pin_detail 内的大图）时显示胶囊形绿色【下载】按钮，点击一键下载“原始 master 文件”（与详情页大图“右键→存储为”一致，最清晰、无 CDN 二次压缩）。点击脚本下拉菜单（油猴菜单）中的【设置】可打开设置弹框，实时开关【开启原生右键菜单】。
 // @author       liteyais
 // @match        *://huaban.com/*
 // @match        *://*.huaban.com/*
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgZmlsbD0ibm9uZSI+PGcgY2xpcC1wYXRoPSJ1cmwoI2EpIj48bWFzayBpZD0iYiIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIyIiB4PSI1IiB5PSIxMiIgbWFza1VuaXRzPSJ1c2VyU3BhY2VPblVzZSIgc3R5bGU9Im1hc2stdHlwZTpsdW1pbmFuY2UiPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNC43MjUgMTIuOTY4SDV2MjAuMzZoMTkuNzI1eiIvPjwvbWFzaz48ZyBtYXNrPSJ1cmwoI2IpIj48cGF0aCBmaWxsPSJ1cmwoI2MpIiBmaWxsLW9wYWNpdHk9Ii42OCIgZD0iTTUuMDc2IDE3Ljk0MWMwIDcuNzk1IDYuMzI3IDE0LjExNSAxNC4xMyAxNC4xMTVoNC45OHYtNC45NzNjMC03Ljc5NS02LjMyOC0xNC4xMTUtMTQuMTMtMTQuMTE1aC00Ljk4eiIvPjxwYXRoIGZpbGw9InVybCgjZCkiIGQ9Ik0xMy4yMSAyNy44OGM2LjA1NSAwIDEwLjk2NS01LjAzIDEwLjk2NS0xMS4wNjJ2LTMuODVIMjAuMzFjLTYuMDU1IDAtMTEuMDU1IDQuODkyLTExLjA1NSAxMC45MjR2My45ODl6Ii8+PC9nPjxwYXRoIGZpbGw9IiMwMDAiIGQ9Ik03LjA5NiA5LjkxNGEuOTM3LjkzNyAwIDAgMCAuNjg5IDEuMzU2YzMuNzk1LjU4MyA5LjgyMSAxLjM2MyAxMS4wOC45NTIuNjE4LS4yMDMgMS43NDMtLjQ3NiAyLjk0Mi0uNjdhMjMgMjMgMCAwIDEtLjI3NC0yLjAwNGMtMi4xMDIuMTctMTAuMjM0LS44NC0xNC4wMzctMS4zNjUtLjEzMS44MzctLjI2NyAxLjQ3LS40IDEuNzMiLz48cGF0aCBmaWxsPSIjRkYyQjJCIiBkPSJNMjEuOTk1IDMuMjU0Yy4xODMtLjQ5My4wNy0xLjA3Ny0uMzkyLTEuMzI2QzE5LjA5MS41NzYgMTQuMDAxLS43NTIgOC45NDIuNTAyYS45Ny45NyAwIDAgMC0uNzIyLjg3MWMtLjE1NSAxLjk4NS0uNDI3IDQuOTE2LS43MjQgNi44MSAzLjgwMy41MjYgMTEuOTM1IDEuNTM1IDE0LjAzNyAxLjM2NS0uMTg3LTEuOTgtLjE5Ni00LjUyLjQ2Mi02LjI5NE03LjA5NiA5LjkxNGMtMS4xNzctLjM4NS0zLjc2Ni0uOTIzLTQuNzA4IDAtMS4xNzcgMS4xNTQuNTg5IDIuODg1IDEuNzY1IDMuNDYxIDEuMS41NCAxMC4wODMgMS40OSAxNy45NzguNjcgMS4wNi0uMTEgMi4xMzQuMTIzIDMuMDI2LjcwNi4yNC4xNTYuNTQuMTkuODAzLjA4IDEuMDIzLS40MjkgMi40NDQtMS4xOTUgMS45MzItMi42MS0uNjI3LTEuNzMtMy44Ni0xLjAzLTYuMDg1LS42Ny0xLjItLjE5NS0yLjMyNC40NjgtMi45NDIuNjctMS4yNTkuNDEyLTcuMjg1LS4zNjgtMTEuMDgtLjk1MWEuOTM3LjkzNyAwIDAgMS0uNjktMS4zNTYiLz48L2c+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJjIiB4MT0iMjAuMDEzIiB4Mj0iOS4xNTYiIHkxPSIxNy4wOTYiIHkyPSIyNy45MzYiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj48c3RvcCBzdG9wLWNvbG9yPSIjRkYyODRCIiBzdG9wLW9wYWNpdHk9Ii43NiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0ZGMjg0QiIgc3RvcC1vcGFjaXR5PSIuMjQiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0iZCIgeDE9IjI0LjE4NSIgeDI9IjkuNDIyIiB5MT0iMTIuOTY4IiB5Mj0iMjcuNjQ5IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHN0b3Agc3RvcC1jb2xvcj0iI0ZGMjg0QiIgc3RvcC1vcGFjaXR5PSIuODQiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNGRjI4NEIiIHN0b3Atb3BhY2l0eT0iLjE2Ii8+PC9saW5lYXJHcmFkaWVudD48Y2xpcFBhdGggaWQ9ImEiPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0wIDBoMzJ2MzJIMHoiLz48L2NsaXBQYXRoPjwvZGVmcz48L3N2Zz4=
 // @license      MIT
+// @homepageURL  https://github.com/liteyais/huaban-userscripts
+// @supportURL   https://github.com/liteyais/huaban-userscripts/issues
+// @downloadURL  https://raw.githubusercontent.com/liteyais/huaban-userscripts/main/huaban_thumb_tools_v3.5.1.user.js
+// @updateURL    https://raw.githubusercontent.com/liteyais/huaban-userscripts/main/huaban_thumb_tools_v3.5.1.user.js
 // @run-at       document-start
 // @grant        GM_registerMenuCommand
 // ==/UserScript==
@@ -221,7 +225,7 @@
     let posDirty = false;   // 滚动/窗口尺寸变化后需要重新对位
     // 一次性测量按钮尺寸（避免每帧读 offsetWidth 触发重排/尺寸跳动，消除闪烁）
     (function measureBtn() {
-      dlBtn.style.display = 'block'; dlBtn.style.visibility = 'hidden';
+      dlBtn.style.display = 'flex'; dlBtn.style.visibility = 'hidden';
       dlBtn.style.left = '-9999px'; dlBtn.style.top = '0px';
       BTN_W = dlBtn.offsetWidth || 56; BTN_H = dlBtn.offsetHeight || 26;
       dlBtn.style.display = 'none'; dlBtn.style.visibility = ''; dlBtn.style.left = ''; dlBtn.style.top = '';
@@ -295,7 +299,7 @@
       if (!r.width || !r.height) return;            // 被回收/尺寸为 0 时跳过，避免跳到左上角
       const left = Math.max(4, Math.round(r.left + r.width / 2 - BTN_W / 2));
       const top = Math.max(4, Math.round(r.top + r.height / 2 - BTN_H / 2 + CONFIG.btnGap));
-      if (dlBtn.style.display !== 'block') dlBtn.style.display = 'block';
+      if (dlBtn.style.display !== 'flex') dlBtn.style.display = 'flex';
       if (left !== lastLeft) { dlBtn.style.left = left + 'px'; lastLeft = left; }
       if (top !== lastTop) { dlBtn.style.top = top + 'px'; lastTop = top; }
     }
@@ -315,7 +319,7 @@
         // 避免缩略图 hover 缩放动画带动按钮移动而在按钮边缘反复显示/隐藏造成闪烁
         cancelHide();
         if (!currentBox) return;
-        if (dlBtn.style.display !== 'block') dlBtn.style.display = 'block';
+        if (dlBtn.style.display !== 'flex') dlBtn.style.display = 'flex';
         if (posDirty) { positionBtn(currentBox); posDirty = false; }
         return;
       }
