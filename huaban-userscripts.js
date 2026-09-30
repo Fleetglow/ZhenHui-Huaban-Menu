@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         花瓣网 - 原生右键+原图下载+商用标签
 // @namespace    https://huaban.com/
-// @version      1.0.3
-// @description  ① 恢复原生右键菜单 （可设置中开关）② 商用素材自动标记 （红描边 + 胶囊"商用"标签）③悬停一键下载原图 
+// @version      1.0.5
+// @description  ① 恢复原生右键菜单（可设置中开关）② 商用素材自动标记（红描边，可设置中开关）③ 卡片「更多」左侧新增 下载/复制 按钮 ④ 详情页主图右下角新增 下载/复制 按钮（兼容 #pin_detail 与 .BcRurZFt 及弹窗式详情，容器类名变动不再失效）⑤ 右侧「商用素材」区域缩略图右下角新增 下载/复制 按钮（覆盖全部 tab）⑥ 图片模块（如推荐画板）封面右下角新增 下载/复制 按钮
 // @author       liteyais
 // @match        *://huaban.com/*
 // @match        *://*.huaban.com/*
@@ -23,6 +23,7 @@
    * 模块〇：设置存储（localStorage，键名前缀 hb_ 防冲突）
    * ===================================================================== */
   const PREF_KEY_NATIVE_MENU = 'hb_native_menu_enabled';
+  const PREF_KEY_FRAME = 'hb_commercial_frame_enabled';   // 商用图片红框提示开关（默认开启）
   function getPref(key, def) {
     try { const v = localStorage.getItem(key); return v === null ? def : v !== '0'; }
     catch (e) { return def; }
@@ -120,13 +121,12 @@
   }
 
   /* =====================================================================
-   * 模块二：商用素材红框标记 + 缩略图/详情主图一键下载（原缩略图工具，配色已更新）
+   * 模块二：商用素材红框标记（原缩略图工具的红框逻辑已迁移至此，配色已更新）
    * ===================================================================== */
   const NAME = '__huabanThumbTools__';
   const DL_CLASS = 'hb-dl-btn';
   const LAYER_CLASS = 'hb-dl-layer';
   const FRAME_CLASS = 'hb-commercial-frame';
-  const LABEL_CLASS = 'hb-commercial-label';
   const STYLE_ID = 'hb-thumb-tools-style';
   const CM_ATTR = 'data-hb-commercial';
   const REL_ATTR = 'data-hb-rel';
@@ -139,14 +139,9 @@
     // 3) 详情页主图：主图所属卡片出现该授权标识即判定商用
     detailCommercialRegex: /商用无忧|官方自营|已获得[^。;]{0,40}授权|需替换字体/,
 
-    // —— 商用标记外观：纯红描边 + 右下角标签 ——
+    // —— 商用标记外观：纯红描边 ——
     borderColor: 'rgba(255,0,0,1)',        // 红框描边（亮红、不透明）
     borderWidth: '3px',
-    label: '商用',
-    labelBg: '#E20000',                    // 标签底色
-    labelBorder: '1px solid #FF4848',      // 标签描边
-    labelRadius: '200px',                  // 标签圆角（胶囊形）
-    labelColor: '#ffffff',
     cornerRadius: '12px',                  // 红框圆角
 
     // —— 下载按钮 ——
@@ -156,15 +151,16 @@
     dlRadius: '200px',                     // 下载按钮圆角（胶囊形）
     dlHoverBg: '#008E24',                  // 下载按钮悬停底色（加深）
 
-    // —— 下载/商用按钮：统一尺寸 + 垂直间距 ——
-    btnW: '56px',               // 两按钮统一宽度
-    btnH: '28px',               // 两按钮统一高度
-    btnGap: 18,                 // 按钮中心相对图片中心的偏移(px)；两按钮间距 = btnGap*2 - 28 = 8px
+    // —— 下载按钮尺寸 ——
+    btnW: '56px',               // 按钮宽度
+    btnH: '28px',               // 按钮高度
     // 兜底派生尺寸（仅在原始 master 取不到时才用）：这些是 CDN 二次编码的 webp，可能更大且更糊
     sizeOrder: ['_fw1200webp', '_fw960webp', '_fw480webp', '_fw240webp'],
 
     // —— 详情页主图容器选择器（点击后展示详情大图的那张图，位于其内）——
-    detailRootSelector: '#pin_detail',
+    // 花瓣网类名会变动：#pin_detail 为旧版，.BcRurZFt 为当前详情左列大图容器；
+    // 任一命中即取其内面积最大的达标图，全部未命中时再走布局兜底。
+    detailRootSelectors: ['#pin_detail', '.BcRurZFt'],
 
     rescanDelay: 300
   };
@@ -184,24 +180,10 @@
     function injectStyle() {
       const old = document.getElementById(STYLE_ID); if (old) old.remove();
       const css = [
-        // 顶层下载按钮层：固定在 body 顶端，压过站点所有悬浮层
-        '.' + LAYER_CLASS + '{position:fixed;inset:0;pointer-events:none;z-index:2147483647;}',
-        '.' + DL_CLASS + '{position:fixed;display:none;pointer-events:auto;z-index:2147483647;',
-        'background:' + CONFIG.dlBg + ';border:' + CONFIG.dlBorder + ';color:#fff;font-size:12px;line-height:1;',
-        'width:' + CONFIG.btnW + ';height:' + CONFIG.btnH + ';display:flex;align-items:center;justify-content:center;box-sizing:border-box;',
-        'border-radius:' + CONFIG.dlRadius + ';cursor:pointer;white-space:nowrap;user-select:none;font-weight:600;',
-        'font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;}',
-        '.' + DL_CLASS + ':hover{background:' + CONFIG.dlHoverBg + ';}',
         // 商用：纯红描边
         '.' + FRAME_CLASS + '{position:absolute;inset:0;z-index:9998;pointer-events:none;',
         'border-radius:' + CONFIG.cornerRadius + ';',
         'box-shadow:inset 0 0 0 ' + CONFIG.borderWidth + ' ' + CONFIG.borderColor + ';}',
-        // 商用：图片中央“商用”标签
-        '.' + LABEL_CLASS + '{position:absolute;left:50%;top:50%;transform:translate(-50%,calc(-50% - ' + CONFIG.btnGap + 'px));z-index:9999;pointer-events:none;',
-        'background:' + CONFIG.labelBg + ';border:' + CONFIG.labelBorder + ';color:' + CONFIG.labelColor + ';font-size:12px;line-height:1;',
-        'width:' + CONFIG.btnW + ';height:' + CONFIG.btnH + ';display:flex;align-items:center;justify-content:center;box-sizing:border-box;',
-        'border-radius:' + CONFIG.labelRadius + ';font-weight:700;',
-        'font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;}',
         // 提示条
         '.hb-toast{position:fixed;left:50%;bottom:40px;transform:translateX(-50%);z-index:2147483647;',
         'background:rgba(0,0,0,.84);color:#fff;font-size:13px;padding:8px 14px;border-radius:8px;',
@@ -212,136 +194,6 @@
     }
     injectStyle();
 
-    /* ------------- 顶层下载按钮 ------------- */
-    const layer = document.createElement('div'); layer.className = LAYER_CLASS;
-    const dlBtn = document.createElement('div'); dlBtn.className = DL_CLASS; dlBtn.textContent = CONFIG.dlText;
-    layer.appendChild(dlBtn);
-    (document.body || document.documentElement).appendChild(layer);
-
-    let currentImg = null, currentBox = null, lastX = -1, lastY = -1, rafPending = false, lastLeft = -1, lastTop = -1, BTN_W = 56, BTN_H = 26;
-    const PAD = 4;        // 命中边缘容差，避免在卡片边界抖动导致按钮忽隐忽现
-    const HIDE_DELAY = 150; // 指针离开卡片/按钮后，按钮继续保留的时长(ms)，消除卡片间隙与边缘抖动造成的闪烁
-    let hideTimer = null;   // 延迟隐藏定时器
-    let posDirty = false;   // 滚动/窗口尺寸变化后需要重新对位
-    // 一次性测量按钮尺寸（避免每帧读 offsetWidth 触发重排/尺寸跳动，消除闪烁）
-    (function measureBtn() {
-      dlBtn.style.display = 'flex'; dlBtn.style.visibility = 'hidden';
-      dlBtn.style.left = '-9999px'; dlBtn.style.top = '0px';
-      BTN_W = dlBtn.offsetWidth || 56; BTN_H = dlBtn.offsetHeight || 26;
-      dlBtn.style.display = 'none'; dlBtn.style.visibility = ''; dlBtn.style.left = ''; dlBtn.style.top = '';
-    })();
-
-    // 延迟隐藏：指针离开卡片/按钮后，按钮仍保留 HIDE_DELAY 毫秒，避免快速划过卡片间隙/边界时按钮忽隐忽现
-    function cancelHide() {
-      if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
-    }
-    function scheduleHide() {
-      if (hideTimer) return;
-      hideTimer = setTimeout(function () { hideTimer = null; hideBtn(); }, HIDE_DELAY);
-    }
-
-    function pinCardOf(el) {
-      while (el && el !== document.body) {
-        if (el.tagName === 'A' && el.querySelector && el.querySelector('img') &&
-            (el.getAttribute('href') || '').indexOf('/pins/') !== -1) return el;
-        el = el.parentElement;
-      }
-      return null;
-    }
-
-    // 详情页主图：点击后展示详情大图的那张（#pin_detail 内面积最大的图，排除头像/按钮小图）
-    function detailMainImg() {
-      const root = document.querySelector(CONFIG.detailRootSelector);
-      if (!root) return null;
-      let main = null, area = 0;
-      const imgs = root.querySelectorAll('img');
-      for (let i = 0; i < imgs.length; i++) {
-        const r = imgs[i].getBoundingClientRect();
-        if (r.width < 200 || r.height < 200) continue;   // 排除头像(24px)/按钮图等小图
-        const a = r.width * r.height;
-        if (a > area) { area = a; main = imgs[i]; }
-      }
-      return main;
-    }
-
-    // 统一解析光标下的“可下载图片”目标：返回 { img, box }
-    function targetUnderPoint(x, y) {
-      const el = document.elementFromPoint(x, y);
-      // 1) 采集卡片（列表/瀑布流/详情页“相似内容”等 a[href*="/pins/"] 卡片）
-      const card = pinCardOf(el);
-      if (card && card.isConnected) {
-        const img = card.querySelector('img');
-        if (img) return { img: img, box: img };
-      }
-      // 2) 详情页主图（#pin_detail 内的大图）
-      if (el && el.closest && el.closest(CONFIG.detailRootSelector)) {
-        const main = detailMainImg();
-        if (main) return { img: main, box: main };
-      }
-      // 3) 几何兜底：按矩形命中并取“面积最小”的卡片（最具体），避免选中跨区的大容器
-      const links = document.querySelectorAll('a[href*="/pins/"]');
-      let best = null, bestArea = Infinity;
-      for (let i = 0; i < links.length; i++) {
-        const a = links[i];
-        if (!a.isConnected || !a.querySelector('img')) continue;
-        const r = a.getBoundingClientRect();
-        if (r.width > 0 && r.height > 0 && x >= r.left - PAD && x <= r.right + PAD && y >= r.top - PAD && y <= r.bottom + PAD) {
-          const area = r.width * r.height;
-          if (area < bestArea) { bestArea = area; best = a; }
-        }
-      }
-      if (best) { const img = best.querySelector('img'); if (img) return { img: img, box: img }; }
-      return null;
-    }
-
-    function positionBtn(box) {
-      const r = box.getBoundingClientRect();   // 以图片自身矩形为锚点，避免容器与图片尺寸不一致导致按钮偏移
-      if (!r.width || !r.height) return;            // 被回收/尺寸为 0 时跳过，避免跳到左上角
-      const left = Math.max(4, Math.round(r.left + r.width / 2 - BTN_W / 2));
-      const top = Math.max(4, Math.round(r.top + r.height / 2 - BTN_H / 2 + CONFIG.btnGap));
-      if (dlBtn.style.display !== 'flex') dlBtn.style.display = 'flex';
-      if (left !== lastLeft) { dlBtn.style.left = left + 'px'; lastLeft = left; }
-      if (top !== lastTop) { dlBtn.style.top = top + 'px'; lastTop = top; }
-    }
-    function hideBtn() {
-      cancelHide();
-      if (dlBtn.style.display === 'none') return;
-      dlBtn.style.display = 'none'; currentImg = null; currentBox = null; lastLeft = -1; lastTop = -1;
-    }
-
-    function update() {
-      rafPending = false;
-      if (lastX < 0) return;
-      const hit = document.elementFromPoint(lastX, lastY);
-      const onBtn = hit && (hit === dlBtn || (hit.classList && hit.classList.contains(DL_CLASS)) || (hit.closest && hit.closest('.' + LAYER_CLASS)));
-      if (onBtn) {
-        // 指针悬停在按钮上：取消隐藏、保持显示；位置冻结，仅在滚动/尺寸变化后重新对位，
-        // 避免缩略图 hover 缩放动画带动按钮移动而在按钮边缘反复显示/隐藏造成闪烁
-        cancelHide();
-        if (!currentBox) return;
-        if (dlBtn.style.display !== 'flex') dlBtn.style.display = 'flex';
-        if (posDirty) { positionBtn(currentBox); posDirty = false; }
-        return;
-      }
-      posDirty = false;
-      const t = targetUnderPoint(lastX, lastY);
-      if (t) { cancelHide(); currentImg = t.img; currentBox = t.box; positionBtn(t.box); }
-      else scheduleHide();
-    }
-    function onMove(e) {
-      lastX = e.clientX; lastY = e.clientY;
-      if (rafPending) return;
-      rafPending = true;
-      requestAnimationFrame(update);
-    }
-    function onScrollResize() { posDirty = true; if (rafPending) return; rafPending = true; requestAnimationFrame(update); }
-
-    document.addEventListener('mousemove', onMove, true);
-    document.addEventListener('pointermove', onMove, true);
-    window.addEventListener('scroll', onScrollResize, true);
-    window.addEventListener('resize', onScrollResize, true);
-    document.addEventListener('mouseleave', scheduleHide, true);
-    document.addEventListener('pointerleave', scheduleHide, true);
 
     let toastTimer = null;
     function toast(msg) {
@@ -371,16 +223,22 @@
       if (!m) m = (location.pathname || '').match(/pins\/(\d+)/);   // 详情页主图：用当前页 pin id
       return m ? m[1] : String(Date.now());
     }
+    async function fetchBestBlob(img) {
+      const src = (img && (img.currentSrc || img.src)) || '';
+      if (!src) return null;
+      const cands = urlCandidates(src);
+      for (let i = 0; i < cands.length; i++) {
+        try { const r = await fetch(cands[i], { mode: 'cors' }); if (r.ok) { const b = await r.blob(); if (b && b.size) return { blob: b, url: cands[i] }; } }
+        catch (e) { /* 试下一个尺寸 */ }
+      }
+      return null;
+    }
     async function download(img) {
       const src = img.currentSrc || img.src || '';
       if (!src) { toast('未找到图片地址'); return { ok: false }; }
       toast('下载中…');
-      let blob = null, usedUrl = null;
-      const cands = urlCandidates(src);
-      for (let i = 0; i < cands.length; i++) {
-        try { const r = await fetch(cands[i], { mode: 'cors' }); if (r.ok) { blob = await r.blob(); usedUrl = cands[i]; break; } }
-        catch (e) { /* 试下一个尺寸 */ }
-      }
+      const hit = await fetchBestBlob(img);
+      const blob = hit && hit.blob;
       if (!blob) { toast('下载失败（跨域或尺寸不可用）'); return { ok: false }; }
       const ext = ((blob.type.split('/')[1] || 'webp') + '').replace('jpeg', 'jpg');
       const id = idOf(img);
@@ -389,16 +247,13 @@
       link.href = href; link.download = 'huaban_' + id + '.' + ext;
       document.body.appendChild(link); link.click(); link.remove();
       setTimeout(function () { URL.revokeObjectURL(href); }, 15000);
-      toast('已下载 ' + link.download + ' (' + Math.round(blob.size / 1024) + 'KB)');
+      const kb = blob.size / 1024;
+      const sizeStr = kb >= 1024 ? (kb / 1024).toFixed(1) + 'M' : Math.round(kb) + 'KB';
+      toast('已下载 ' + link.download + ' (' + sizeStr + ')');
       return { ok: true, name: link.download, size: blob.size };
     }
-    function onBtnClick(e) {
-      e.preventDefault(); e.stopPropagation();
-      if (currentImg) download(currentImg);
-    }
-    dlBtn.addEventListener('click', onBtnClick, true);
 
-    /* ------------- 商用标记（纯描边 + 图片中央标签） ------------- */
+    /* ------------- 商用标记（纯红描边） ------------- */
     function ensureWrap(el) {
       if (getComputedStyle(el).position === 'static') { el.style.position = 'relative'; el.setAttribute(REL_ATTR, '1'); }
     }
@@ -409,8 +264,7 @@
       if (wrapper.getAttribute(CM_ATTR) === '1') return;
       ensureWrap(wrapper);
       const frame = document.createElement('div'); frame.className = FRAME_CLASS;
-      const label = document.createElement('div'); label.className = LABEL_CLASS; label.textContent = CONFIG.label;
-      wrapper.appendChild(frame); wrapper.appendChild(label);
+      wrapper.appendChild(frame);
       wrapper.setAttribute(CM_ATTR, '1');
       stats.commercial++;
     }
@@ -465,7 +319,22 @@
         }
       }
     }
-    function scan() { scanCommercialCards(); scanCommercialDetail(); scanCommercialSections(); }
+    /* ------------- 红框开关（设置弹框中实时切换） ------------- */
+    let frameEnabled = getPref(PREF_KEY_FRAME, true);   // 默认开启
+    function scan() {
+      if (!frameEnabled) return;
+      scanCommercialCards(); scanCommercialDetail(); scanCommercialSections();
+    }
+    function setCommercialFrame(on) {
+      frameEnabled = !!on;
+      if (frameEnabled) {
+        scan();   // 重新开启：立即重扫并补画红框
+      } else {
+        // 关闭：移除所有已画红框与标记
+        document.querySelectorAll('.' + FRAME_CLASS).forEach(function (b) { b.remove(); });
+        document.querySelectorAll('[' + CM_ATTR + ']').forEach(function (w) { w.removeAttribute(CM_ATTR); });
+      }
+    }
 
     /* ------------- 动态内容重扫 ------------- */
     let timer = null;
@@ -478,17 +347,9 @@
 
     /* ------------- 清理（仅本模块） ------------- */
     function disposeThumbTools() {
-      document.removeEventListener('mousemove', onMove, true);
-      document.removeEventListener('pointermove', onMove, true);
-      document.removeEventListener('mouseleave', scheduleHide, true);
-      document.removeEventListener('pointerleave', scheduleHide, true);
-      window.removeEventListener('scroll', onScrollResize, true);
-      window.removeEventListener('resize', onScrollResize, true);
-      dlBtn.removeEventListener('click', onBtnClick, true);
       observer.disconnect();
       if (timer) { clearTimeout(timer); timer = null; }
-      if (layer && layer.remove) layer.remove();
-      document.querySelectorAll('.' + FRAME_CLASS + ',.' + LABEL_CLASS).forEach(function (b) { b.remove(); });
+      document.querySelectorAll('.' + FRAME_CLASS).forEach(function (b) { b.remove(); });
       document.querySelectorAll('[' + CM_ATTR + ']').forEach(function (w) { w.removeAttribute(CM_ATTR); });
       document.querySelectorAll('[' + REL_ATTR + '="1"]').forEach(function (w) { w.style.position = ''; w.removeAttribute(REL_ATTR); });
       const st = document.getElementById(STYLE_ID); if (st) st.remove();
@@ -498,8 +359,561 @@
       dispose: disposeThumbTools,
       scan: scan,
       download: download,
-      detailMainImg: detailMainImg,
+      fetchBestBlob: fetchBestBlob,
+      urlCandidates: urlCandidates,
+      toast: toast,
+      setCommercialFrame: setCommercialFrame,
       config: CONFIG
+    };
+  }
+
+  /* =====================================================================
+   * 模块四：卡片操作按钮（下载 / 复制），插入到每个「更多」按钮的左侧
+   * 视觉与「更多」按钮一致：28x28 圆形、悬停浅灰底、图标变深
+   * ===================================================================== */
+  const CARD_ACTIONS_CLASS = 'hb-card-actions';
+  const CARD_BTN_CLASS = 'hb-card-btn';
+  const CARD_ACTIONS_STYLE_ID = 'hb-card-actions-style';
+  const CARD_ACTIONS_ATTR = 'data-hb-card-actions';
+
+  function initCardActions() {
+    if (window.__huabanCardActions__ && window.__huabanCardActions__.dispose) {
+      try { window.__huabanCardActions__.dispose(); } catch (e) {}
+    }
+
+    function ensureStyle() {
+      if (document.getElementById(CARD_ACTIONS_STYLE_ID)) return;
+      const css = [
+        '.' + CARD_ACTIONS_CLASS + '{display:flex;align-items:center;gap:0;margin-left:auto;flex:none;}',
+        '.' + CARD_BTN_CLASS + '{position:relative;width:28px;height:28px;border-radius:99px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s ease;}',
+        '.' + CARD_BTN_CLASS + ' .hb-card-icon{font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;color:#7f8792;transition:color .15s ease;}',
+        '.' + CARD_BTN_CLASS + ' .hb-card-icon svg{width:1em;height:1em;fill:currentColor;overflow:hidden;display:block;}',
+        '.' + CARD_BTN_CLASS + ':hover{background:rgba(0,0,0,.04);}',
+        '.' + CARD_BTN_CLASS + ':hover .hb-card-icon{color:#222529;}',
+        '.' + CARD_BTN_CLASS + ':active .hb-card-icon{color:#222529;}'
+      ].join('');
+      const s = document.createElement('style'); s.id = CARD_ACTIONS_STYLE_ID; s.textContent = css;
+      (document.head || document.documentElement).appendChild(s);
+    }
+
+    const SVGNS = 'http://www.w3.org/2000/svg';
+    const XLINK = 'http://www.w3.org/1999/xlink';
+    function makeIcon(symbolId) {
+      const svg = document.createElementNS(SVGNS, 'svg');
+      svg.setAttribute('viewBox', '0 0 1024 1024');
+      const use = document.createElementNS(SVGNS, 'use');
+      use.setAttribute('href', '#' + symbolId);
+      try { use.setAttributeNS(XLINK, 'xlink:href', '#' + symbolId); } catch (e) {}
+      svg.appendChild(use);
+      return svg;
+    }
+    function makeBtn(kind, title, symbolId) {
+      const b = document.createElement('div');
+      b.className = CARD_BTN_CLASS;
+      b.setAttribute('role', 'button');
+      b.setAttribute('tabindex', '0');
+      b.setAttribute('title', title);
+      b.setAttribute('aria-label', title);
+      const icon = document.createElement('span');
+      icon.className = 'hb-card-icon';
+      icon.appendChild(makeIcon(symbolId));
+      b.appendChild(icon);
+      b.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); onAction(kind, b); }, true);
+      b.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onAction(kind, b); } }, true);
+      return b;
+    }
+
+    // 从按钮向上寻找卡片的主图（面积最大且尺寸达标的 img）
+    function findCardImage(el) {
+      let node = el, depth = 0;
+      while (node && node !== document.body && depth < 12) {
+        if (node.querySelectorAll) {
+          const imgs = node.querySelectorAll('img');
+          let best = null, ba = 0;
+          for (let i = 0; i < imgs.length; i++) {
+            const im = imgs[i], r = im.getBoundingClientRect();
+            if (r.width < 100 || r.height < 60) continue;
+            const a = r.width * r.height;
+            if (a > ba) { ba = a; best = im; }
+          }
+          if (best) return best;
+        }
+        node = node.parentElement; depth++;
+      }
+      return null;
+    }
+
+    function toast(msg) {
+      const t = window[NAME];
+      if (t && typeof t.toast === 'function') t.toast(msg);
+    }
+
+    async function toPngBlob(blob) {
+      if (blob.type === 'image/png') return blob;
+      const bmp = await createImageBitmap(blob);
+      const c = document.createElement('canvas');
+      c.width = bmp.width; c.height = bmp.height;
+      c.getContext('2d').drawImage(bmp, 0, 0);
+      const out = await new Promise(function (res) { c.toBlob(res, 'image/png'); });
+      if (!out) throw new Error('PNG 编码失败');
+      return out;
+    }
+
+    function copyImage(img) {
+      if (!navigator.clipboard || typeof navigator.clipboard.write !== 'function' || typeof window.ClipboardItem !== 'function') {
+        toast('当前浏览器不支持复制图片'); return;
+      }
+      const tools = window[NAME];
+      if (!tools || typeof tools.fetchBestBlob !== 'function') { toast('复制失败：内部方法未就绪'); return; }
+      toast('复制中…');
+      const pngPromise = (async function () {
+        const hit = await tools.fetchBestBlob(img);
+        if (!hit || !hit.blob) throw new Error('图片获取失败');
+        return await toPngBlob(hit.blob);
+      })();
+      navigator.clipboard.write([ new window.ClipboardItem({ 'image/png': pngPromise }) ])
+        .then(function () { toast('图片已复制到剪贴板'); })
+        .catch(function (err) { toast('复制失败：' + ((err && err.message) || err)); });
+    }
+
+    function onAction(kind, btn) {
+      const img = findCardImage(btn);
+      if (!img) { toast('未找到图片'); return; }
+      if (kind === 'download') {
+        const tools = window[NAME];
+        if (tools && typeof tools.download === 'function') tools.download(img);
+      } else if (kind === 'copy') {
+        copyImage(img);
+      }
+    }
+
+    function insertAll() {
+      const rows = document.querySelectorAll('.__5mD3UK1y');
+      let inserted = 0;
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const more = row.querySelector('.ant-dropdown-trigger.__8AiCDJAb');
+        if (!more || !more.parentNode) continue;
+        const prev = more.previousElementSibling;
+        if (prev && prev.classList && prev.classList.contains(CARD_ACTIONS_CLASS)) continue; // 已插入
+        const actions = document.createElement('div');
+        actions.className = CARD_ACTIONS_CLASS;
+        actions.appendChild(makeBtn('download', '下载', 'hb_download'));
+        actions.appendChild(makeBtn('copy', '复制', 'copy'));
+        more.parentNode.insertBefore(actions, more);
+        if (row.setAttribute) row.setAttribute(CARD_ACTIONS_ATTR, '1');
+        inserted++;
+      }
+      return inserted;
+    }
+
+    ensureStyle();
+    insertAll();
+
+    let timer = null;
+    const observer = new MutationObserver(function () {
+      if (timer) return;
+      timer = setTimeout(function () { timer = null; insertAll(); }, 300);
+    });
+    observer.observe(document.documentElement || document, { childList: true, subtree: true });
+
+    function dispose() {
+      observer.disconnect();
+      if (timer) { clearTimeout(timer); timer = null; }
+      document.querySelectorAll('.' + CARD_ACTIONS_CLASS).forEach(function (n) { n.remove(); });
+      document.querySelectorAll('[' + CARD_ACTIONS_ATTR + ']').forEach(function (n) { if (n && n.removeAttribute) n.removeAttribute(CARD_ACTIONS_ATTR); });
+      const st = document.getElementById(CARD_ACTIONS_STYLE_ID); if (st) st.remove();
+    }
+    window.__huabanCardActions__ = { dispose: dispose, insertAll: insertAll };
+  }
+
+  /* =====================================================================
+   * 模块五：详情页主图操作按钮（下载 / 复制）
+   * 位置：详情大图右下方（若存在「找相似」按钮则贴其左侧对齐）
+   * 样式：与模块四卡片按钮完全一致（28x28 圆形、悬停浅灰底、图标变深）
+   * 说明：原「悬停一键下载」绿色按钮已移除，详情图下载/复制改由本模块承担
+   * ===================================================================== */
+  const DETAIL_LAYER_CLASS = 'hb-detail-layer';
+  const DETAIL_ACTIONS_CLASS = 'hb-detail-actions';
+  const DETAIL_ACTIONS_ATTR = 'data-hb-detail-actions';
+  const DETAIL_STYLE_ID = 'hb-detail-style';
+
+  function initDetailActions() {
+    // 移除旧版「悬停一键下载」绿色胶囊按钮的残留节点（含跨世界残留），确保绿色按钮彻底消失
+    function purgeLegacyHover() {
+      document.querySelectorAll('.hb-dl-layer').forEach(function (n) { n.remove(); });
+      document.querySelectorAll('.hb-dl-btn').forEach(function (n) { n.remove(); });
+    }
+    purgeLegacyHover();
+    document.querySelectorAll('.' + DETAIL_LAYER_CLASS).forEach(function (n) { n.remove(); });
+    if (window.__huabanDetailActions__ && window.__huabanDetailActions__.dispose) {
+      try { window.__huabanDetailActions__.dispose(); } catch (e) {}
+    }
+
+    const tools = window[NAME];
+    if (!tools || typeof tools.toast !== 'function') return { ok: false, reason: 'thumb-api-missing' };
+
+    // 样式：本模块独立注入一份。详情大图按钮加白色圆形底 + 阴影，
+    // 与右侧「商用素材」缩略图按钮保持一致，避免按钮压在图片上看不清。
+    // 即使模块四已注入基础样式，这里仍必须写入详情专属底色规则（故不再提前 return）。
+    function ensureStyle() {
+      const old = document.getElementById(DETAIL_STYLE_ID); if (old) old.remove();
+      const css = [
+        '.' + CARD_BTN_CLASS + '{position:relative;width:28px;height:28px;border-radius:99px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s ease;}',
+        '.' + CARD_BTN_CLASS + ' .hb-card-icon{font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;color:#7f8792;transition:color .15s ease;}',
+        '.' + CARD_BTN_CLASS + ' .hb-card-icon svg{width:1em;height:1em;fill:currentColor;overflow:hidden;display:block;}',
+        '.' + CARD_BTN_CLASS + ':hover .hb-card-icon{color:#222529;}',
+        // 详情大图按钮：白色圆形底 + 阴影（与缩略图按钮一致）
+        '.' + DETAIL_ACTIONS_CLASS + ' .' + CARD_BTN_CLASS + '{background:rgba(255,255,255,.92);box-shadow:0 1px 4px rgba(0,0,0,.18);}',
+        '.' + DETAIL_ACTIONS_CLASS + ' .' + CARD_BTN_CLASS + ':hover{background:#fff;}'
+      ].join('');
+      const st = document.createElement('style'); st.id = DETAIL_STYLE_ID; st.textContent = css;
+      (document.head || document.documentElement).appendChild(st);
+    }
+    ensureStyle();
+
+    const SVGNS = 'http://www.w3.org/2000/svg';
+    const XLINK = 'http://www.w3.org/1999/xlink';
+    function makeIcon(symbolId) {
+      const svg = document.createElementNS(SVGNS, 'svg');
+      svg.setAttribute('viewBox', '0 0 1024 1024');
+      const use = document.createElementNS(SVGNS, 'use');
+      use.setAttribute('href', '#' + symbolId);
+      try { use.setAttributeNS(XLINK, 'xlink:href', '#' + symbolId); } catch (e) {}
+      svg.appendChild(use);
+      return svg;
+    }
+
+    // 详情页主图：优先在已知容器（#pin_detail / .BcRurZFt）内取面积最大、尺寸达标的 img；
+    // 容器类名变动或全部未命中时，退化为「视口左半侧、宽高均>=350 的最大图」布局兜底，
+    // 从而不依赖任何会变动的 class 名。
+    function detailMainImg() {
+      const roots = CONFIG.detailRootSelectors || ['#pin_detail'];
+      let main = null, area = 0;
+      for (let s = 0; s < roots.length; s++) {
+        const root = document.querySelector(roots[s]);
+        if (!root) continue;
+        const imgs = root.querySelectorAll('img');
+        for (let i = 0; i < imgs.length; i++) {
+          const r = imgs[i].getBoundingClientRect();
+          if (r.width < 200 || r.height < 200) continue;
+          const a = r.width * r.height;
+          if (a > area) { area = a; main = imgs[i]; }
+        }
+        if (main) return main;   // 命中已知容器即返回，避免误取瀑布流卡片图
+      }
+      // 布局兜底：详情主图固定在左侧大图区，宽高明显大于右侧缩略图
+      const vw = window.innerWidth, vh = window.innerHeight;
+      let best = null, bestScore = 0;
+      const all = document.querySelectorAll('img');
+      for (let i = 0; i < all.length; i++) {
+        const r = all[i].getBoundingClientRect();
+        if (r.width < 350 || r.height < 350) continue;          // 排除缩略图/头像/小图标
+        if (r.left + r.width / 2 > vw * 0.6) continue;          // 排除右侧栏
+        if (r.top > vh) continue;                               // 排除视口下方瀑布流卡片
+        const score = r.width * r.height;
+        if (score > bestScore) { bestScore = score; best = all[i]; }
+      }
+      return best;
+    }
+
+    function copyImage(img) {
+      if (!navigator.clipboard || typeof navigator.clipboard.write !== 'function' || typeof window.ClipboardItem !== 'function') {
+        tools.toast('当前浏览器不支持复制图片'); return;
+      }
+      if (typeof tools.fetchBestBlob !== 'function') { tools.toast('复制失败：内部方法未就绪'); return; }
+      tools.toast('复制中…');
+      const pngPromise = (async function () {
+        const hit = await tools.fetchBestBlob(img);
+        if (!hit || !hit.blob) throw new Error('图片获取失败');
+        let blob = hit.blob;
+        if (blob.type !== 'image/png') {
+          const bmp = await createImageBitmap(blob);
+          const c = document.createElement('canvas');
+          c.width = bmp.width; c.height = bmp.height;
+          c.getContext('2d').drawImage(bmp, 0, 0);
+          blob = await new Promise(function (res) { c.toBlob(res, 'image/png'); });
+          if (!blob) throw new Error('PNG 编码失败');
+        }
+        return blob;
+      })();
+      navigator.clipboard.write([ new window.ClipboardItem({ 'image/png': pngPromise }) ])
+        .then(function () { tools.toast('图片已复制到剪贴板'); })
+        .catch(function (err) { tools.toast('复制失败：' + ((err && err.message) || err)); });
+    }
+
+    function onAction(kind) {
+      const img = detailMainImg();
+      if (!img) { tools.toast('未找到图片'); return; }
+      if (kind === 'download') { if (typeof tools.download === 'function') tools.download(img); }
+      else if (kind === 'copy') { copyImage(img); }
+    }
+
+    function makeBtn(kind, title, symbolId) {
+      const b = document.createElement('div');
+      b.className = CARD_BTN_CLASS;
+      b.setAttribute('role', 'button');
+      b.setAttribute('tabindex', '0');
+      b.setAttribute('title', title);
+      b.setAttribute('aria-label', title);
+      const icon = document.createElement('span');
+      icon.className = 'hb-card-icon';
+      icon.appendChild(makeIcon(symbolId));
+      b.appendChild(icon);
+      b.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); onAction(kind); }, true);
+      b.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onAction(kind); } }, true);
+      return b;
+    }
+
+    const layer = document.createElement('div');
+    layer.className = DETAIL_LAYER_CLASS;
+    layer.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:2147483646;';
+
+    const row = document.createElement('div');
+    row.className = DETAIL_ACTIONS_CLASS;
+    row.setAttribute(DETAIL_ACTIONS_ATTR, '1');
+    row.style.cssText = 'position:fixed;display:none;align-items:center;gap:8px;pointer-events:auto;';
+    row.appendChild(makeBtn('download', '下载原图', 'hb_download'));
+    row.appendChild(makeBtn('copy', '复制图片', 'copy'));
+    layer.appendChild(row);
+    (document.body || document.documentElement).appendChild(layer);
+
+    let raf = null;
+    function place() {
+      raf = null;
+      purgeLegacyHover();
+      const img = detailMainImg();
+      if (!img) { row.style.display = 'none'; return; }
+      const r = img.getBoundingClientRect();
+      if (!r.width || !r.height) { row.style.display = 'none'; return; }
+      let right = window.innerWidth - (r.right - 8);
+      let bottom = window.innerHeight - (r.bottom - 8);
+      const col = img.parentElement && img.parentElement.parentElement;
+      const sim = (col && col.querySelector) ? col.querySelector('a[href*="/similar"]') : null;
+      if (sim) {
+        const sr = sim.getBoundingClientRect();
+        if (sr.width && sr.height) {
+          const cy = sr.top + sr.height / 2;
+          right = window.innerWidth - (sr.left - 8);
+          bottom = window.innerHeight - (cy + 14);
+        }
+      }
+      row.style.display = 'flex';
+      row.style.right = Math.round(right) + 'px';
+      row.style.bottom = Math.round(bottom) + 'px';
+      row.style.left = 'auto';
+      row.style.top = 'auto';
+    }
+    function schedule() { if (raf) return; raf = requestAnimationFrame(place); }
+
+    window.addEventListener('scroll', schedule, true);
+    window.addEventListener('resize', schedule, true);
+    const mo = new MutationObserver(schedule);
+    mo.observe(document.documentElement || document, { childList: true, subtree: true });
+    schedule();
+
+    function dispose() {
+      window.removeEventListener('scroll', schedule, true);
+      window.removeEventListener('resize', schedule, true);
+      try { mo.disconnect(); } catch (e) {}
+      if (raf) { cancelAnimationFrame(raf); raf = null; }
+      if (layer && layer.remove) layer.remove();
+      const st = document.getElementById(DETAIL_STYLE_ID); if (st) st.remove();
+    }
+    window.__huabanDetailActions__ = { dispose: dispose, place: place, detailMainImg: detailMainImg };
+    return { ok: true, buttons: 2, hasDetailImg: !!detailMainImg() };
+  }
+
+  /* =====================================================================
+   * 模块六：右侧「商用素材」区域缩略图操作按钮（下载 / 复制）
+   * 位置：每个缩略图包裹层 .__6BhM_e7Z 的右下角（right:6px; bottom:6px）
+   * 覆盖：商用素材区域所有 tab（相似内容 / 搭配背景 / 搭配元素 / 相似成品）
+   * 样式：与模块四/五按钮完全一致（28x28 圆形、悬停浅灰底、图标变深）
+   * ===================================================================== */
+  const THUMB_WRAP_SELECTOR = '.__6BhM_e7Z';
+  const THUMB_ACTIONS_CLASS = 'hb-thumb-actions';
+  const THUMB_ACTIONS_ATTR = 'data-hb-thumb-actions';
+  const THUMB_STYLE_ID = 'hb-thumb-actions-style';
+
+  function initSidebarThumbActions() {
+    // 幂等：清理旧实例残留
+    document.querySelectorAll('.' + THUMB_ACTIONS_CLASS).forEach(function (n) { n.remove(); });
+    if (window.__huabanThumbActions__ && window.__huabanThumbActions__.dispose) {
+      try { window.__huabanThumbActions__.dispose(); } catch (e) {}
+    }
+
+    const tools = window[NAME];
+    if (!tools || typeof tools.toast !== 'function') return { ok: false, reason: 'thumb-api-missing' };
+
+    // 样式：本模块独立注入一份（含按钮基础样式 + 按钮组定位），
+    // 不依赖模块四/五是否已注入，避免定位规则因提前 return 而缺失。
+    function ensureStyle() {
+      const old = document.getElementById(THUMB_STYLE_ID); if (old) old.remove();
+      const css = [
+        '.' + CARD_BTN_CLASS + '{position:relative;width:28px;height:28px;border-radius:99px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s ease;}',
+        '.' + CARD_BTN_CLASS + ' .hb-card-icon{font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;color:#7f8792;transition:color .15s ease;}',
+        '.' + CARD_BTN_CLASS + ' .hb-card-icon svg{width:1em;height:1em;fill:currentColor;overflow:hidden;display:block;}',
+        '.' + CARD_BTN_CLASS + ':hover{background:rgba(0,0,0,.04);}',
+        '.' + CARD_BTN_CLASS + ':hover .hb-card-icon{color:#222529;}',
+        '.' + THUMB_ACTIONS_CLASS + '{position:absolute;right:6px;bottom:6px;display:flex;align-items:center;gap:2px;z-index:9999;pointer-events:auto;}',
+        '.' + THUMB_ACTIONS_CLASS + ' .' + CARD_BTN_CLASS + '{background:rgba(255,255,255,.92);box-shadow:0 1px 4px rgba(0,0,0,.18);}',
+        '.' + THUMB_ACTIONS_CLASS + ' .' + CARD_BTN_CLASS + ':hover{background:#fff;}'
+      ].join('');
+      const st = document.createElement('style'); st.id = THUMB_STYLE_ID; st.textContent = css;
+      (document.head || document.documentElement).appendChild(st);
+    }
+    ensureStyle();
+
+    const SVGNS = 'http://www.w3.org/2000/svg';
+    const XLINK = 'http://www.w3.org/1999/xlink';
+    function makeIcon(symbolId) {
+      const svg = document.createElementNS(SVGNS, 'svg');
+      svg.setAttribute('viewBox', '0 0 1024 1024');
+      const use = document.createElementNS(SVGNS, 'use');
+      use.setAttribute('href', '#' + symbolId);
+      try { use.setAttributeNS(XLINK, 'xlink:href', '#' + symbolId); } catch (e) {}
+      svg.appendChild(use);
+      return svg;
+    }
+
+    // 缩略图包裹层内的主图（面积最大的 img）
+    function thumbImg(wrap) {
+      const imgs = wrap.querySelectorAll('img');
+      let best = null, ba = 0;
+      for (let i = 0; i < imgs.length; i++) {
+        const r = imgs[i].getBoundingClientRect();
+        const a = r.width * r.height;
+        if (a > ba) { ba = a; best = imgs[i]; }
+      }
+      return best || wrap.querySelector('img');
+    }
+
+    function copyImage(img) {
+      if (!navigator.clipboard || typeof navigator.clipboard.write !== 'function' || typeof window.ClipboardItem !== 'function') {
+        tools.toast('当前浏览器不支持复制图片'); return;
+      }
+      if (typeof tools.fetchBestBlob !== 'function') { tools.toast('复制失败：内部方法未就绪'); return; }
+      tools.toast('复制中…');
+      const pngPromise = (async function () {
+        const hit = await tools.fetchBestBlob(img);
+        if (!hit || !hit.blob) throw new Error('图片获取失败');
+        let blob = hit.blob;
+        if (blob.type !== 'image/png') {
+          const bmp = await createImageBitmap(blob);
+          const c = document.createElement('canvas');
+          c.width = bmp.width; c.height = bmp.height;
+          c.getContext('2d').drawImage(bmp, 0, 0);
+          blob = await new Promise(function (res) { c.toBlob(res, 'image/png'); });
+          if (!blob) throw new Error('PNG 编码失败');
+        }
+        return blob;
+      })();
+      navigator.clipboard.write([ new window.ClipboardItem({ 'image/png': pngPromise }) ])
+        .then(function () { tools.toast('图片已复制到剪贴板'); })
+        .catch(function (err) { tools.toast('复制失败：' + ((err && err.message) || err)); });
+    }
+
+    function onAction(kind, wrap) {
+      const img = thumbImg(wrap);
+      if (!img) { tools.toast('未找到图片'); return; }
+      if (kind === 'download') { if (typeof tools.download === 'function') tools.download(img); }
+      else if (kind === 'copy') { copyImage(img); }
+    }
+
+    function makeBtn(kind, title, symbolId, wrap) {
+      const b = document.createElement('div');
+      b.className = CARD_BTN_CLASS;
+      b.setAttribute('role', 'button');
+      b.setAttribute('tabindex', '0');
+      b.setAttribute('title', title);
+      b.setAttribute('aria-label', title);
+      const icon = document.createElement('span');
+      icon.className = 'hb-card-icon';
+      icon.appendChild(makeIcon(symbolId));
+      b.appendChild(icon);
+      b.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); onAction(kind, wrap); }, true);
+      b.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onAction(kind, wrap); } }, true);
+      return b;
+    }
+
+    // 仅处理右侧「商用素材」区域缩略图（含 pin 锚点，位于视口右半侧），
+    // 借此避免误伤左侧主图区与瀑布流卡片
+    function insertAll() {
+      const wraps = document.querySelectorAll(THUMB_WRAP_SELECTOR);
+      let inserted = 0;
+      for (let i = 0; i < wraps.length; i++) {
+        const wrap = wraps[i];
+        if (!wrap.querySelector('a[href*="/pins/"]')) continue;
+        const r = wrap.getBoundingClientRect();
+        if (r.width && r.left + r.width / 2 < window.innerWidth * 0.55) continue;
+        if (wrap.querySelector('.' + THUMB_ACTIONS_CLASS)) continue;   // 已插入
+        const cs = getComputedStyle(wrap);
+        if (cs.position === 'static') wrap.style.position = 'relative';
+        const actions = document.createElement('div');
+        actions.className = THUMB_ACTIONS_CLASS;
+        actions.setAttribute(THUMB_ACTIONS_ATTR, '1');
+        actions.appendChild(makeBtn('download', '下载原图', 'hb_download', wrap));
+        actions.appendChild(makeBtn('copy', '复制图片', 'copy', wrap));
+        wrap.appendChild(actions);
+        wrap.setAttribute(THUMB_ACTIONS_ATTR, '1');
+        inserted++;
+      }
+
+      // 其他图片模块（类 zjSSb8O3 o_7cy1tC brick，如「推荐画板」）：为画板卡片封面图添加按钮
+      const bricks = document.querySelectorAll('.zjSSb8O3');
+      for (let i = 0; i < bricks.length; i++) {
+        const b = bricks[i];
+        if (b.querySelector('.__5mD3UK1y')) continue;              // 卡片行由模块四处理
+        if (b.closest && b.closest('#pin_detail, .BcRurZFt')) continue;   // 详情主图由模块五处理
+        const links = b.querySelectorAll('a[href*="/boards/"]');
+        for (let j = 0; j < links.length; j++) {
+          const a = links[j];
+          if (a.querySelector('.' + THUMB_ACTIONS_CLASS)) continue;   // 已插入
+          const imgs = a.querySelectorAll('img');
+          let best = null, ba = 0;
+          for (let k = 0; k < imgs.length; k++) {
+            const rr = imgs[k].getBoundingClientRect();
+            const ar = rr.width * rr.height;
+            if (ar > ba) { ba = ar; best = imgs[k]; }
+          }
+          if (!best || ba < 100 * 100) continue;               // 仅处理明显封面图，跳过小图标
+          const host = best.parentElement;
+          if (!host) continue;
+          if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+          const acts = document.createElement('div');
+          acts.className = THUMB_ACTIONS_CLASS;
+          acts.setAttribute(THUMB_ACTIONS_ATTR, '1');
+          acts.appendChild(makeBtn('download', '下载原图', 'hb_download', a));
+          acts.appendChild(makeBtn('copy', '复制图片', 'copy', a));
+          host.appendChild(acts);
+          a.setAttribute(THUMB_ACTIONS_ATTR, '1');
+          inserted++;
+        }
+      }
+      return inserted;
+    }
+
+    insertAll();
+
+    let timer = null;
+    const observer = new MutationObserver(function () {
+      if (timer) return;
+      timer = setTimeout(function () { timer = null; insertAll(); }, CONFIG.rescanDelay);
+    });
+    observer.observe(document.documentElement || document, { childList: true, subtree: true });
+
+    function dispose() {
+      observer.disconnect();
+      if (timer) { clearTimeout(timer); timer = null; }
+      document.querySelectorAll('.' + THUMB_ACTIONS_CLASS).forEach(function (n) { n.remove(); });
+      document.querySelectorAll('[' + THUMB_ACTIONS_ATTR + ']').forEach(function (n) { if (n && n.removeAttribute) n.removeAttribute(THUMB_ACTIONS_ATTR); });
+      const st = document.getElementById(THUMB_STYLE_ID); if (st) st.remove();
+    }
+    window.__huabanThumbActions__ = { dispose: dispose, insertAll: insertAll };
+    return {
+      ok: true,
+      wraps: document.querySelectorAll(THUMB_WRAP_SELECTOR).length,
+      actions: document.querySelectorAll('.' + THUMB_ACTIONS_CLASS).length
     };
   }
 
@@ -549,6 +963,10 @@
       '      <span class="hbns-row-label">开启原生右键菜单</span>',
       '      <label class="hbns-switch"><input type="checkbox" class="hbns-switch-input"><span class="hbns-sw-track"><span class="hbns-sw-thumb"></span></span></label>',
       '    </div>',
+      '    <div class="hbns-row">',
+      '      <span class="hbns-row-label">商用图片红框提示</span>',
+      '      <label class="hbns-switch"><input type="checkbox" class="hbns-switch-input-frame"><span class="hbns-sw-track"><span class="hbns-sw-thumb"></span></span></label>',
+      '    </div>',
       '  </div>',
       '</div>'
     ].join('');
@@ -559,9 +977,11 @@
     const dialog = root.querySelector('.hbns-dialog');
     const closeBtn = root.querySelector('.hbns-close');
     const swInput = root.querySelector('.hbns-switch-input');
+    const swFrameInput = root.querySelector('.hbns-switch-input-frame');
 
     function open() {
       swInput.checked = getPref(PREF_KEY_NATIVE_MENU, true);
+      swFrameInput.checked = getPref(PREF_KEY_FRAME, true);
       overlay.style.display = 'block';
       dialog.style.display = 'block';
     }
@@ -580,6 +1000,11 @@
       setPref(PREF_KEY_NATIVE_MENU, swInput.checked);
       if (swInput.checked) enableNativeMenu(); else disableNativeMenu();
     });
+    swFrameInput.addEventListener('change', function () {
+      setPref(PREF_KEY_FRAME, swFrameInput.checked);
+      const tools = window[NAME];
+      if (tools && typeof tools.setCommercialFrame === 'function') tools.setCommercialFrame(swFrameInput.checked);
+    });
   }
 
   /* =====================================================================
@@ -590,6 +1015,9 @@
   // 模块二/三需要 DOM 就绪（下载按钮、商用标记、设置按钮）
   function bootDom() {
     initThumbTools();
+    initCardActions();
+    initDetailActions();
+    initSidebarThumbActions();
     initSettingsUI();
   }
   if (document.readyState === 'loading') {
