@@ -1,4 +1,4 @@
-# 臻绘花瓣菜单 · ZhenHui Huaban Menu
+# 甄绘花瓣菜单 · ZhenHui Huaban Menu
 
 版本：1.0.8 · 维护：[Fleetglow](https://github.com/Fleetglow) · 原项目声明协议：MIT
 
