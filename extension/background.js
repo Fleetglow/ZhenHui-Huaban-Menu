@@ -1,31 +1,20 @@
 'use strict';
 
-const extensionApi = globalThis.browser || globalThis.chrome;
-
-extensionApi.action.onClicked.addListener(async function (tab) {
+chrome.action.onClicked.addListener(async function (tab) {
   if (!tab.id || !tab.url || !/^https?:\/\/([^/]+\.)?huaban\.com(?:\/|$)/i.test(tab.url)) return;
   try {
-    await extensionApi.tabs.sendMessage(tab.id, { type: 'open-settings' });
+    await chrome.tabs.sendMessage(tab.id, { type: 'open-settings' });
   } catch (error) {
     console.warn('请刷新花瓣页面后再打开设置', error);
   }
 });
 
-extensionApi.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-  if (!message || !['fetch-image', 'copy-image'].includes(message.type)) return;
+chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+  if (!message || message.type !== 'fetch-image') return;
   (async function () {
     try {
       if (!sender.tab || !/^https?:\/\/([^/]+\.)?huaban\.com(?:\/|$)/i.test(sender.url || '')) {
         throw new Error('请求来源不是花瓣页面');
-      }
-      if (message.type === 'copy-image') {
-        if (typeof message.data !== 'string' || !extensionApi.clipboard?.setImageData) {
-          throw new Error('当前浏览器不支持后台复制图片');
-        }
-        const bytes = Uint8Array.from(atob(message.data), function (c) { return c.charCodeAt(0); });
-        await extensionApi.clipboard.setImageData(bytes.buffer, 'png');
-        sendResponse({ ok: true });
-        return;
       }
       const url = new URL(message.url);
       if (!['https:', 'http:'].includes(url.protocol) ||

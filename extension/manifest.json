@@ -1,18 +1,9 @@
 {
   "manifest_version": 3,
   "name": "花瓣网 - 原生右键 + 原图下载 + 商用标签",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "homepage_url": "https://github.com/Fleetglow/ZhenHui-Huaban-Menu",
   "minimum_chrome_version": "121",
-  "browser_specific_settings": {
-    "gecko": {
-      "id": "huaban-tools@liteyais.github.io",
-      "strict_min_version": "140.0",
-      "data_collection_permissions": {
-        "required": ["none"]
-      }
-    }
-  },
   "description": "恢复花瓣原生右键菜单，标记商用素材，下载原图与复制图片。",
   "icons": {
     "16": "icon.png",
@@ -28,7 +19,6 @@
     "*://*.dancf.com/*"
   ],
   "background": {
-    "scripts": ["background.js"],
     "service_worker": "background.js"
   },
   "action": {

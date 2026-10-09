@@ -5,8 +5,6 @@
 (function () {
   'use strict';
 
-  const extensionApi = globalThis.browser || globalThis.chrome;
-
   /* =====================================================================
    * 模块〇：扩展设置存储
    * ===================================================================== */
@@ -17,7 +15,7 @@
     return prefs[key] === undefined ? def : prefs[key];
   }
   async function setPref(key, val) {
-    await extensionApi.storage.local.set({ [key]: val });
+    await chrome.storage.local.set({ [key]: val });
     prefs[key] = val;
   }
 
@@ -169,8 +167,7 @@
 
   function copyImage(img) {
     const tools = window[NAME];
-    const firefox = extensionApi.runtime.getURL('').startsWith('moz-extension://');
-    if (!firefox && (!navigator.clipboard?.write || typeof ClipboardItem !== 'function')) {
+    if (!navigator.clipboard?.write || typeof ClipboardItem !== 'function') {
       tools.toast('当前浏览器不支持复制图片');
       return;
     }
@@ -189,22 +186,9 @@
       if (!png) throw new Error('PNG 编码失败');
       return png;
     })();
-    (async function () {
-      if (firefox) {
-        const png = await pngPromise;
-        const data = await new Promise(function (resolve, reject) {
-          const reader = new FileReader();
-          reader.onload = function () { resolve(reader.result.split(',')[1]); };
-          reader.onerror = function () { reject(reader.error); };
-          reader.readAsDataURL(png);
-        });
-        const result = await extensionApi.runtime.sendMessage({ type: 'copy-image', data: data });
-        if (!result?.ok) throw new Error(result?.error || '剪贴板写入失败');
-      } else {
-        await navigator.clipboard.write([new ClipboardItem({ 'image/png': pngPromise })]);
-      }
-      tools.toast('图片已复制到剪贴板');
-    })().catch(function (error) { tools.toast('复制失败：' + error.message); });
+    navigator.clipboard.write([new ClipboardItem({ 'image/png': pngPromise })])
+      .then(function () { tools.toast('图片已复制到剪贴板'); })
+      .catch(function (error) { tools.toast('复制失败：' + error.message); });
   }
 
   function initThumbTools() {
@@ -269,7 +253,7 @@
       const cands = urlCandidates(src);
       for (let i = 0; i < cands.length; i++) {
         try {
-          const hit = await extensionApi.runtime.sendMessage({ type: 'fetch-image', url: cands[i] });
+          const hit = await chrome.runtime.sendMessage({ type: 'fetch-image', url: cands[i] });
           if (hit && hit.data) {
             const bytes = Uint8Array.from(atob(hit.data), function (c) { return c.charCodeAt(0); });
             return { blob: new Blob([bytes], { type: hit.mime }), url: cands[i] };
@@ -959,12 +943,12 @@
   syncNativeMenu();
   let openSettings = null;
   let settingsPending = false;
-  extensionApi.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+  chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     if (message.type !== 'open-settings') return;
     if (openSettings) openSettings(); else settingsPending = true;
     sendResponse({ ok: true });
   });
-  extensionApi.storage.onChanged.addListener(function (changes, area) {
+  chrome.storage.onChanged.addListener(function (changes, area) {
     if (area !== 'local') return;
     for (const key of [PREF_KEY_NATIVE_MENU, PREF_KEY_FRAME]) {
       if (changes[key]) prefs[key] = changes[key].newValue;
@@ -977,7 +961,7 @@
       hbnsRoot.querySelector('.hbns-switch-input-frame').checked = getPref(PREF_KEY_FRAME, true);
     }
   });
-  const prefsReady = extensionApi.storage.local.get([PREF_KEY_NATIVE_MENU, PREF_KEY_FRAME])
+  const prefsReady = chrome.storage.local.get([PREF_KEY_NATIVE_MENU, PREF_KEY_FRAME])
     .then(function (saved) {
       for (const key of Object.keys(saved)) {
         if (!(key in prefs)) prefs[key] = saved[key];

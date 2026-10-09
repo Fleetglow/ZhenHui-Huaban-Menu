@@ -1,12 +1,12 @@
 # 臻绘花瓣菜单 · ZhenHui Huaban Menu
 
-版本：1.0.7 · 维护：[Fleetglow](https://github.com/Fleetglow) · 原项目声明协议：MIT
+版本：1.0.8 · 维护：[Fleetglow](https://github.com/Fleetglow) · 原项目声明协议：MIT
 
 项目仓库：[Fleetglow/ZhenHui-Huaban-Menu](https://github.com/Fleetglow/ZhenHui-Huaban-Menu)
 
 基于原作者 [liteyais](https://github.com/liteyais) 的 [huaban-userscripts](https://github.com/liteyais/huaban-userscripts) 改编，保留原脚本的主要功能，迁移为独立浏览器扩展。感谢原作者提供脚本。
 
-独立浏览器扩展，适配 Chrome / Edge 121+、Firefox 140+，不需要 Tampermonkey。提供原生右键、商用素材红框、原图下载和图片复制。三种浏览器共用 `extension/` 文件夹。
+独立浏览器扩展，支持 Chrome / Edge 121+，不需要 Tampermonkey。提供原生右键、商用素材红框、原图下载和图片复制。两种浏览器共用 `extension/` 文件夹。
 
 ## 安装
 
@@ -18,8 +18,6 @@
 
 无需安装依赖或构建。更新文件后，在扩展管理页面点击「重新加载」，再刷新花瓣页面。
 
-Firefox：打开 `about:debugging#/runtime/this-firefox`，点击「临时载入附加组件」，选择 `extension/manifest.json`，刷新花瓣页面即可。临时加载在关闭 Firefox 后失效；长期安装需要 Mozilla 签名的扩展包，本项目尚未签名。
-
 ## 功能
 
 - 恢复浏览器原生右键菜单，设置中可关闭。
@@ -30,7 +28,7 @@ Firefox：打开 `about:debugging#/runtime/this-firefox`，点击「临时载入
 
 ## 权限与文件
 
-`storage` 保存设置；`clipboardWrite` 复制图片。Firefox 使用后台剪贴板接口写入 PNG，Chrome / Edge 使用页面剪贴板接口。内容脚本只在花瓣页面运行，后台图片请求限定于花瓣及其图片域名、稿定 CDN（`huaban.com`、`huabanimg.com`、`hbimg.cn`、`dancf.com`），不申请所有网站权限。
+`storage` 保存设置；`clipboardWrite` 复制图片。Chrome / Edge 使用页面剪贴板接口。内容脚本只在花瓣页面运行，后台图片请求限定于花瓣及其图片域名、稿定 CDN（`huaban.com`、`huabanimg.com`、`hbimg.cn`、`dancf.com`），不申请所有网站权限。
 
 ```text
 ZhenHui-Huaban-Menu/
