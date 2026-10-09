@@ -1,37 +1,52 @@
-# 花瓣网 - 原生右键 + 原图下载 + 商用标签
+# 臻绘花瓣菜单 · ZhenHui Huaban Menu
 
-> 作者：liteyais ｜ 版本：v1.0.5 ｜ 协议：MIT
-> 仓库：https://github.com/liteyais/huaban-userscripts
+版本：1.0.7 · 维护：[Fleetglow](https://github.com/Fleetglow) · 原项目声明协议：MIT
 
-一款让花瓣网更好用的小工具，装上后自动拥有以下 4 个功能：
+项目仓库：[Fleetglow/ZhenHui-Huaban-Menu](https://github.com/Fleetglow/ZhenHui-Huaban-Menu)
 
-## 功能介绍
+基于原作者 [liteyais](https://github.com/liteyais) 的 [huaban-userscripts](https://github.com/liteyais/huaban-userscripts) 改编，保留原脚本的主要功能，迁移为独立浏览器扩展。感谢原作者提供脚本。
 
-**1. 恢复浏览器原生右键菜单**
-以前在花瓣网上点鼠标右键，弹出的是花瓣网自己的菜单。装上本脚本后，点右键直接显示电脑浏览器的原生菜单（可使用右键另存为、浏览器扩展插件等右键插件），和其他网站的操作一样。可在脚本菜单【设置】中随时关闭。
+独立浏览器扩展，适配 Chrome / Edge 121+、Firefox 140+，不需要 Tampermonkey。提供原生右键、商用素材红框、原图下载和图片复制。三种浏览器共用 `extension/` 文件夹。
 
-**2. 商用素材自动标记**
-花瓣网上标注为“版权素材”、带商用授权的图片，会自动加上红色描边，一眼就能认出哪些图片可用于商用。可在设置中关闭红框提示。
+## 安装
 
-**3. 图片一键下载 / 复制**
-每张图片上都有【下载】【复制】按钮：瀑布流卡片、详情页大图、右侧“商用素材”缩略图、推荐画板封面均可直接下载原图或复制图片到剪贴板。
+1. 在本仓库点击「Code → Download ZIP」，解压并保留 `extension/` 文件夹。
+2. Chrome 打开 `chrome://extensions`，Edge 打开 `edge://extensions`，开启「开发者模式」。
+3. 点击「加载已解压的扩展程序」，选择 `extension/` 文件夹，里面包含 `manifest.json`。
+4. 关闭旧的花瓣油猴脚本，刷新已打开的花瓣页面。
+5. 在浏览器工具栏的扩展菜单中固定本扩展。在花瓣页面点击扩展图标，即可打开设置。
 
-**4. 设置开关**
-点击浏览器工具栏的脚本菜单 →【设置】，可随时打开或关闭“原生右键菜单”和“商用图片红框提示”，修改后立即生效，无需刷新页面。
+无需安装依赖或构建。更新文件后，在扩展管理页面点击「重新加载」，再刷新花瓣页面。
 
-## 安装使用
+Firefox：打开 `about:debugging#/runtime/this-firefox`，点击「临时载入附加组件」，选择 `extension/manifest.json`，刷新花瓣页面即可。临时加载在关闭 Firefox 后失效；长期安装需要 Mozilla 签名的扩展包，本项目尚未签名。
 
-1. 安装 [Tampermonkey](https://www.tampermonkey.net/) 浏览器扩展；
-2. 打开 [huaban-userscripts.js](https://raw.githubusercontent.com/liteyais/huaban-userscripts/main/huaban-userscripts.js)，Tampermonkey 会提示安装；
-3. 打开花瓣网任意页面即可使用；设置开关位于脚本下拉菜单 →【设置】。
+## 功能
 
-## 更新记录
+- 恢复浏览器原生右键菜单，设置中可关闭。
+- 根据花瓣页面中的版权、商用授权标识显示红框，设置中可关闭；红框不代表额外授予使用权。
+- 在瀑布流卡片、详情页大图、商用素材缩略图和推荐画板封面添加下载、复制按钮。
+- 下载优先获取无尺寸后缀的原图，不可用时尝试派生尺寸。复制图片时转换成 PNG。
+- 两项设置默认开启，保存在扩展中，并同步到已打开的花瓣页面；首次安装使用默认值，不继承旧脚本的设置。
 
-| 版本 | 说明 |
-| ---- | ---- |
-| v1.0.5 | 新增设置项“商用图片红框提示”开关（默认开启）；图片下载/复制按钮覆盖瀑布流卡片、详情页、商用素材缩略图、推荐画板 |
-| v1.0.3 | 脚本重命名为 `huaban-userscripts.js`，更新安装/更新地址 |
-| v1.1.2 | 修复下载按钮文字居中；头部补充 GitHub 仓库/更新地址信息；新增 README |
-| v1.1.1 | 下载与商用按钮统一尺寸（56×28px），两按钮间距 8px |
-| v1.1.0 | 设置入口改为脚本下拉菜单；商用标签/下载按钮改为胶囊形配色 |
-| v1.0.0 | 合并原生右键脚本，功能集成；新建设置弹框 |
+## 权限与文件
+
+`storage` 保存设置；`clipboardWrite` 复制图片。Firefox 使用后台剪贴板接口写入 PNG，Chrome / Edge 使用页面剪贴板接口。内容脚本只在花瓣页面运行，后台图片请求限定于花瓣及其图片域名、稿定 CDN（`huaban.com`、`huabanimg.com`、`hbimg.cn`、`dancf.com`），不申请所有网站权限。
+
+```text
+ZhenHui-Huaban-Menu/
+├── README.md
+├── LICENSE
+└── extension/             ← 浏览器加载此文件夹
+    ├── manifest.json      扩展配置
+    ├── background.js      设置入口与图片请求
+    ├── content.js         图片操作、红框、右键与设置
+    └── icon.png           扩展图标
+```
+
+`extension/` 只包含扩展运行文件，README 与 Git 元数据留在项目根目录。
+
+## 手动验收
+
+加载扩展后打开花瓣，检查原生右键、红框、下载和复制；点击扩展图标切换两项设置，检查页面立即变化，刷新后保留设置。
+
+本次迁移及兼容适配未执行测试或构建。

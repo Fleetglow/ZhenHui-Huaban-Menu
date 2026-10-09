@@ -1,35 +1,24 @@
-// ==UserScript==
-// @name         花瓣网 - 原生右键+原图下载+商用标签
-// @namespace    https://huaban.com/
-// @version      1.0.5
-// @description  ① 恢复原生右键菜单（可设置中开关）② 商用素材自动标记（红描边，可设置中开关）③ 卡片「更多」左侧新增 下载/复制 按钮 ④ 详情页主图右下角新增 下载/复制 按钮（兼容 #pin_detail 与 .BcRurZFt 及弹窗式详情，容器类名变动不再失效）⑤ 右侧「商用素材」区域缩略图右下角新增 下载/复制 按钮（覆盖全部 tab）⑥ 图片模块（如推荐画板）封面右下角新增 下载/复制 按钮
-// @author       liteyais
-// @match        *://huaban.com/*
-// @match        *://*.huaban.com/*
-// @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgZmlsbD0ibm9uZSI+PGcgY2xpcC1wYXRoPSJ1cmwoI2EpIj48bWFzayBpZD0iYiIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIyIiB4PSI1IiB5PSIxMiIgbWFza1VuaXRzPSJ1c2VyU3BhY2VPblVzZSIgc3R5bGU9Im1hc2stdHlwZTpsdW1pbmFuY2UiPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNC43MjUgMTIuOTY4SDV2MjAuMzZoMTkuNzI1eiIvPjwvbWFzaz48ZyBtYXNrPSJ1cmwoI2IpIj48cGF0aCBmaWxsPSJ1cmwoI2MpIiBmaWxsLW9wYWNpdHk9Ii42OCIgZD0iTTUuMDc2IDE3Ljk0MWMwIDcuNzk1IDYuMzI3IDE0LjExNSAxNC4xMyAxNC4xMTVoNC45OHYtNC45NzNjMC03Ljc5NS02LjMyOC0xNC4xMTUtMTQuMTMtMTQuMTE1aC00Ljk4eiIvPjxwYXRoIGZpbGw9InVybCgjZCkiIGQ9Ik0xMy4yMSAyNy44OGM2LjA1NSAwIDEwLjk2NS01LjAzIDEwLjk2NS0xMS4wNjJ2LTMuODVIMjAuMzFjLTYuMDU1IDAtMTEuMDU1IDQuODkyLTExLjA1NSAxMC45MjR2My45ODl6Ii8+PC9nPjxwYXRoIGZpbGw9IiMwMDAiIGQ9Ik03LjA5NiA5LjkxNGEuOTM3LjkzNyAwIDAgMCAuNjg5IDEuMzU2YzMuNzk1LjU4MyA5LjgyMSAxLjM2MyAxMS4wOC45NTIuNjE4LS4yMDMgMS43NDMtLjQ3NiAyLjk0Mi0uNjdhMjMgMjMgMCAwIDEtLjI3NC0yLjAwNGMtMi4xMDIuMTctMTAuMjM0LS44NC0xNC4wMzctMS4zNjUtLjEzMS44MzctLjI2NyAxLjQ3LS40IDEuNzMiLz48cGF0aCBmaWxsPSIjRkYyQjJCIiBkPSJNMjEuOTk1IDMuMjU0Yy4xODMtLjQ5My4wNy0xLjA3Ny0uMzkyLTEuMzI2QzE5LjA5MS41NzYgMTQuMDAxLS43NTIgOC45NDIuNTAyYS45Ny45NyAwIDAgMC0uNzIyLjg3MWMtLjE1NSAxLjk4NS0uNDI3IDQuOTE2LS43MjQgNi44MSAzLjgwMy41MjYgMTEuOTM1IDEuNTM1IDE0LjAzNyAxLjM2NS0uMTg3LTEuOTgtLjE5Ni00LjUyLjQ2Mi02LjI5NE03LjA5NiA5LjkxNGMtMS4xNzctLjM4NS0zLjc2Ni0uOTIzLTQuNzA4IDAtMS4xNzcgMS4xNTQuNTg5IDIuODg1IDEuNzY1IDMuNDYxIDEuMS41NCAxMC4wODMgMS40OSAxNy45NzguNjcgMS4wNi0uMTEgMi4xMzQuMTIzIDMuMDI2LjcwNi4yNC4xNTYuNTQuMTkuODAzLjA4IDEuMDIzLS40MjkgMi40NDQtMS4xOTUgMS45MzItMi42MS0uNjI3LTEuNzMtMy44Ni0xLjAzLTYuMDg1LS42Ny0xLjItLjE5NS0yLjMyNC40NjgtMi45NDIuNjctMS4yNTkuNDEyLTcuMjg1LS4zNjgtMTEuMDgtLjk1MWEuOTM3LjkzNyAwIDAgMS0uNjktMS4zNTYiLz48L2c+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJjIiB4MT0iMjAuMDEzIiB4Mj0iOS4xNTYiIHkxPSIxNy4wOTYiIHkyPSIyNy45MzYiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj48c3RvcCBzdG9wLWNvbG9yPSIjRkYyODRCIiBzdG9wLW9wYWNpdHk9Ii43NiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0ZGMjg0QiIgc3RvcC1vcGFjaXR5PSIuMjQiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0iZCIgeDE9IjI0LjE4NSIgeDI9IjkuNDIyIiB5MT0iMTIuOTY4IiB5Mj0iMjcuNjQ5IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHN0b3Agc3RvcC1jb2xvcj0iI0ZGMjg0QiIgc3RvcC1vcGFjaXR5PSIuODQiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNGRjI4NEIiIHN0b3Atb3BhY2l0eT0iLjE2Ii8+PC9saW5lYXJHcmFkaWVudD48Y2xpcFBhdGggaWQ9ImEiPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0wIDBoMzJ2MzJIMHoiLz48L2NsaXBQYXRoPjwvZGVmcz48L3N2Zz4=
-// @license      MIT
-// @homepageURL  https://github.com/liteyais/huaban-userscripts
-// @supportURL   https://github.com/liteyais/huaban-userscripts/issues
-// @downloadURL  https://raw.githubusercontent.com/liteyais/huaban-userscripts/main/huaban-userscripts.js
-// @updateURL    https://raw.githubusercontent.com/liteyais/huaban-userscripts/main/huaban-userscripts.js
-// @run-at       document-start
-// @grant        GM_registerMenuCommand
-// ==/UserScript==
+// 花瓣网 - 原生右键 + 原图下载 + 商用标签
+// 原作者：liteyais；协议：MIT
+// 原项目：https://github.com/liteyais/huaban-userscripts
 
 (function () {
   'use strict';
 
+  const extensionApi = globalThis.browser || globalThis.chrome;
+
   /* =====================================================================
-   * 模块〇：设置存储（localStorage，键名前缀 hb_ 防冲突）
+   * 模块〇：扩展设置存储
    * ===================================================================== */
   const PREF_KEY_NATIVE_MENU = 'hb_native_menu_enabled';
   const PREF_KEY_FRAME = 'hb_commercial_frame_enabled';   // 商用图片红框提示开关（默认开启）
+  const prefs = {};
   function getPref(key, def) {
-    try { const v = localStorage.getItem(key); return v === null ? def : v !== '0'; }
-    catch (e) { return def; }
+    return prefs[key] === undefined ? def : prefs[key];
   }
-  function setPref(key, val) {
-    try { localStorage.setItem(key, val ? '1' : '0'); } catch (e) {}
+  async function setPref(key, val) {
+    await extensionApi.storage.local.set({ [key]: val });
+    prefs[key] = val;
   }
 
   /* =====================================================================
@@ -131,6 +120,17 @@
   const CM_ATTR = 'data-hb-commercial';
   const REL_ATTR = 'data-hb-rel';
 
+  function makeIcon(symbolId) {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', symbolId === 'hb_download'
+      ? 'M11 3h2v9l3-3 1.4 1.4L12 15.8l-5.4-5.4L8 9l3 3V3zM4 16h2v3h12v-3h2v5H4z'
+      : 'M8 8h13v13H8V8zm2 2v9h9v-9h-9zM3 3h13v3h-2V5H5v9h1v2H3V3z');
+    svg.appendChild(path);
+    return svg;
+  }
+
   const CONFIG = {
     // 1) 列表/瀑布流卡片：卡片内出现该文本即判定商用（花瓣网商用卡片徽标形如“版权素材 EPS/PNG/AI/JPG”）
     cardTextPatterns: ['版权素材'],
@@ -166,6 +166,46 @@
   };
 
   const stats = { commercial: 0 };
+
+  function copyImage(img) {
+    const tools = window[NAME];
+    const firefox = extensionApi.runtime.getURL('').startsWith('moz-extension://');
+    if (!firefox && (!navigator.clipboard?.write || typeof ClipboardItem !== 'function')) {
+      tools.toast('当前浏览器不支持复制图片');
+      return;
+    }
+    tools.toast('复制中…');
+    const pngPromise = (async function () {
+      const hit = await tools.fetchBestBlob(img);
+      if (!hit || !hit.blob) throw new Error('图片获取失败');
+      if (hit.blob.type === 'image/png') return hit.blob;
+      const bitmap = await createImageBitmap(hit.blob);
+      const canvas = document.createElement('canvas');
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
+      canvas.getContext('2d').drawImage(bitmap, 0, 0);
+      bitmap.close();
+      const png = await new Promise(function (resolve) { canvas.toBlob(resolve, 'image/png'); });
+      if (!png) throw new Error('PNG 编码失败');
+      return png;
+    })();
+    (async function () {
+      if (firefox) {
+        const png = await pngPromise;
+        const data = await new Promise(function (resolve, reject) {
+          const reader = new FileReader();
+          reader.onload = function () { resolve(reader.result.split(',')[1]); };
+          reader.onerror = function () { reject(reader.error); };
+          reader.readAsDataURL(png);
+        });
+        const result = await extensionApi.runtime.sendMessage({ type: 'copy-image', data: data });
+        if (!result?.ok) throw new Error(result?.error || '剪贴板写入失败');
+      } else {
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': pngPromise })]);
+      }
+      tools.toast('图片已复制到剪贴板');
+    })().catch(function (error) { tools.toast('复制失败：' + error.message); });
+  }
 
   function initThumbTools() {
     // 幂等：清理旧实例（含更早版本的残留）
@@ -228,7 +268,13 @@
       if (!src) return null;
       const cands = urlCandidates(src);
       for (let i = 0; i < cands.length; i++) {
-        try { const r = await fetch(cands[i], { mode: 'cors' }); if (r.ok) { const b = await r.blob(); if (b && b.size) return { blob: b, url: cands[i] }; } }
+        try {
+          const hit = await extensionApi.runtime.sendMessage({ type: 'fetch-image', url: cands[i] });
+          if (hit && hit.data) {
+            const bytes = Uint8Array.from(atob(hit.data), function (c) { return c.charCodeAt(0); });
+            return { blob: new Blob([bytes], { type: hit.mime }), url: cands[i] };
+          }
+        }
         catch (e) { /* 试下一个尺寸 */ }
       }
       return null;
@@ -396,17 +442,6 @@
       (document.head || document.documentElement).appendChild(s);
     }
 
-    const SVGNS = 'http://www.w3.org/2000/svg';
-    const XLINK = 'http://www.w3.org/1999/xlink';
-    function makeIcon(symbolId) {
-      const svg = document.createElementNS(SVGNS, 'svg');
-      svg.setAttribute('viewBox', '0 0 1024 1024');
-      const use = document.createElementNS(SVGNS, 'use');
-      use.setAttribute('href', '#' + symbolId);
-      try { use.setAttributeNS(XLINK, 'xlink:href', '#' + symbolId); } catch (e) {}
-      svg.appendChild(use);
-      return svg;
-    }
     function makeBtn(kind, title, symbolId) {
       const b = document.createElement('div');
       b.className = CARD_BTN_CLASS;
@@ -448,33 +483,7 @@
       if (t && typeof t.toast === 'function') t.toast(msg);
     }
 
-    async function toPngBlob(blob) {
-      if (blob.type === 'image/png') return blob;
-      const bmp = await createImageBitmap(blob);
-      const c = document.createElement('canvas');
-      c.width = bmp.width; c.height = bmp.height;
-      c.getContext('2d').drawImage(bmp, 0, 0);
-      const out = await new Promise(function (res) { c.toBlob(res, 'image/png'); });
-      if (!out) throw new Error('PNG 编码失败');
-      return out;
-    }
 
-    function copyImage(img) {
-      if (!navigator.clipboard || typeof navigator.clipboard.write !== 'function' || typeof window.ClipboardItem !== 'function') {
-        toast('当前浏览器不支持复制图片'); return;
-      }
-      const tools = window[NAME];
-      if (!tools || typeof tools.fetchBestBlob !== 'function') { toast('复制失败：内部方法未就绪'); return; }
-      toast('复制中…');
-      const pngPromise = (async function () {
-        const hit = await tools.fetchBestBlob(img);
-        if (!hit || !hit.blob) throw new Error('图片获取失败');
-        return await toPngBlob(hit.blob);
-      })();
-      navigator.clipboard.write([ new window.ClipboardItem({ 'image/png': pngPromise }) ])
-        .then(function () { toast('图片已复制到剪贴板'); })
-        .catch(function (err) { toast('复制失败：' + ((err && err.message) || err)); });
-    }
 
     function onAction(kind, btn) {
       const img = findCardImage(btn);
@@ -572,17 +581,6 @@
     }
     ensureStyle();
 
-    const SVGNS = 'http://www.w3.org/2000/svg';
-    const XLINK = 'http://www.w3.org/1999/xlink';
-    function makeIcon(symbolId) {
-      const svg = document.createElementNS(SVGNS, 'svg');
-      svg.setAttribute('viewBox', '0 0 1024 1024');
-      const use = document.createElementNS(SVGNS, 'use');
-      use.setAttribute('href', '#' + symbolId);
-      try { use.setAttributeNS(XLINK, 'xlink:href', '#' + symbolId); } catch (e) {}
-      svg.appendChild(use);
-      return svg;
-    }
 
     // 详情页主图：优先在已知容器（#pin_detail / .BcRurZFt）内取面积最大、尺寸达标的 img；
     // 容器类名变动或全部未命中时，退化为「视口左半侧、宽高均>=350 的最大图」布局兜底，
@@ -617,30 +615,6 @@
       return best;
     }
 
-    function copyImage(img) {
-      if (!navigator.clipboard || typeof navigator.clipboard.write !== 'function' || typeof window.ClipboardItem !== 'function') {
-        tools.toast('当前浏览器不支持复制图片'); return;
-      }
-      if (typeof tools.fetchBestBlob !== 'function') { tools.toast('复制失败：内部方法未就绪'); return; }
-      tools.toast('复制中…');
-      const pngPromise = (async function () {
-        const hit = await tools.fetchBestBlob(img);
-        if (!hit || !hit.blob) throw new Error('图片获取失败');
-        let blob = hit.blob;
-        if (blob.type !== 'image/png') {
-          const bmp = await createImageBitmap(blob);
-          const c = document.createElement('canvas');
-          c.width = bmp.width; c.height = bmp.height;
-          c.getContext('2d').drawImage(bmp, 0, 0);
-          blob = await new Promise(function (res) { c.toBlob(res, 'image/png'); });
-          if (!blob) throw new Error('PNG 编码失败');
-        }
-        return blob;
-      })();
-      navigator.clipboard.write([ new window.ClipboardItem({ 'image/png': pngPromise }) ])
-        .then(function () { tools.toast('图片已复制到剪贴板'); })
-        .catch(function (err) { tools.toast('复制失败：' + ((err && err.message) || err)); });
-    }
 
     function onAction(kind) {
       const img = detailMainImg();
@@ -764,17 +738,6 @@
     }
     ensureStyle();
 
-    const SVGNS = 'http://www.w3.org/2000/svg';
-    const XLINK = 'http://www.w3.org/1999/xlink';
-    function makeIcon(symbolId) {
-      const svg = document.createElementNS(SVGNS, 'svg');
-      svg.setAttribute('viewBox', '0 0 1024 1024');
-      const use = document.createElementNS(SVGNS, 'use');
-      use.setAttribute('href', '#' + symbolId);
-      try { use.setAttributeNS(XLINK, 'xlink:href', '#' + symbolId); } catch (e) {}
-      svg.appendChild(use);
-      return svg;
-    }
 
     // 缩略图包裹层内的主图（面积最大的 img）
     function thumbImg(wrap) {
@@ -788,30 +751,6 @@
       return best || wrap.querySelector('img');
     }
 
-    function copyImage(img) {
-      if (!navigator.clipboard || typeof navigator.clipboard.write !== 'function' || typeof window.ClipboardItem !== 'function') {
-        tools.toast('当前浏览器不支持复制图片'); return;
-      }
-      if (typeof tools.fetchBestBlob !== 'function') { tools.toast('复制失败：内部方法未就绪'); return; }
-      tools.toast('复制中…');
-      const pngPromise = (async function () {
-        const hit = await tools.fetchBestBlob(img);
-        if (!hit || !hit.blob) throw new Error('图片获取失败');
-        let blob = hit.blob;
-        if (blob.type !== 'image/png') {
-          const bmp = await createImageBitmap(blob);
-          const c = document.createElement('canvas');
-          c.width = bmp.width; c.height = bmp.height;
-          c.getContext('2d').drawImage(bmp, 0, 0);
-          blob = await new Promise(function (res) { c.toBlob(res, 'image/png'); });
-          if (!blob) throw new Error('PNG 编码失败');
-        }
-        return blob;
-      })();
-      navigator.clipboard.write([ new window.ClipboardItem({ 'image/png': pngPromise }) ])
-        .then(function () { tools.toast('图片已复制到剪贴板'); })
-        .catch(function (err) { tools.toast('复制失败：' + ((err && err.message) || err)); });
-    }
 
     function onAction(kind, wrap) {
       const img = thumbImg(wrap);
@@ -918,7 +857,7 @@
   }
 
   /* =====================================================================
-   * 模块三：设置菜单项 + 设置弹框（入口为脚本下拉菜单，非页面悬浮按钮）
+   * 模块三：设置弹框（入口为浏览器工具栏扩展图标）
    * 所有类名/ID 均带 hbns- 前缀，避免与站点或其他脚本的 CSS/JS 重名冲突
    * ===================================================================== */
   let hbnsRoot = null;
@@ -961,11 +900,11 @@
       '  <div class="hbns-body">',
       '    <div class="hbns-row">',
       '      <span class="hbns-row-label">开启原生右键菜单</span>',
-      '      <label class="hbns-switch"><input type="checkbox" class="hbns-switch-input"><span class="hbns-sw-track"><span class="hbns-sw-thumb"></span></span></label>',
+      '      <label class="hbns-switch"><input type="checkbox" class="hbns-switch-input" aria-label="开启原生右键菜单"><span class="hbns-sw-track"><span class="hbns-sw-thumb"></span></span></label>',
       '    </div>',
       '    <div class="hbns-row">',
       '      <span class="hbns-row-label">商用图片红框提示</span>',
-      '      <label class="hbns-switch"><input type="checkbox" class="hbns-switch-input-frame"><span class="hbns-sw-track"><span class="hbns-sw-thumb"></span></span></label>',
+      '      <label class="hbns-switch"><input type="checkbox" class="hbns-switch-input-frame" aria-label="商用图片红框提示"><span class="hbns-sw-track"><span class="hbns-sw-thumb"></span></span></label>',
       '    </div>',
       '  </div>',
       '</div>'
@@ -992,33 +931,69 @@
 
     overlay.addEventListener('click', close);
     closeBtn.addEventListener('click', close);
-    // 脚本下拉菜单（油猴菜单）中的【设置】项：点击打开设置弹框
-    if (typeof GM_registerMenuCommand === 'function') {
-      try { GM_registerMenuCommand('设置', open); } catch (e) {}
-    }
-    swInput.addEventListener('change', function () {
-      setPref(PREF_KEY_NATIVE_MENU, swInput.checked);
-      if (swInput.checked) enableNativeMenu(); else disableNativeMenu();
+    openSettings = open;
+    swInput.addEventListener('change', async function () {
+      try {
+        await setPref(PREF_KEY_NATIVE_MENU, swInput.checked);
+        syncNativeMenu();
+      } catch (e) {
+        swInput.checked = getPref(PREF_KEY_NATIVE_MENU, true);
+        window[NAME].toast('设置保存失败，请刷新页面后重试');
+      }
     });
-    swFrameInput.addEventListener('change', function () {
-      setPref(PREF_KEY_FRAME, swFrameInput.checked);
-      const tools = window[NAME];
-      if (tools && typeof tools.setCommercialFrame === 'function') tools.setCommercialFrame(swFrameInput.checked);
+    swFrameInput.addEventListener('change', async function () {
+      try {
+        await setPref(PREF_KEY_FRAME, swFrameInput.checked);
+        window[NAME].setCommercialFrame(swFrameInput.checked);
+      } catch (e) {
+        swFrameInput.checked = getPref(PREF_KEY_FRAME, true);
+        window[NAME].toast('设置保存失败，请刷新页面后重试');
+      }
     });
   }
 
   /* =====================================================================
    * 启动
    * ===================================================================== */
-  // 模块一在 document-start 立即生效（按已保存的设置）
+  // 在 document-start 拦截右键，读取扩展设置后同步状态。
   syncNativeMenu();
-  // 模块二/三需要 DOM 就绪（下载按钮、商用标记、设置按钮）
-  function bootDom() {
+  let openSettings = null;
+  let settingsPending = false;
+  extensionApi.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+    if (message.type !== 'open-settings') return;
+    if (openSettings) openSettings(); else settingsPending = true;
+    sendResponse({ ok: true });
+  });
+  extensionApi.storage.onChanged.addListener(function (changes, area) {
+    if (area !== 'local') return;
+    for (const key of [PREF_KEY_NATIVE_MENU, PREF_KEY_FRAME]) {
+      if (changes[key]) prefs[key] = changes[key].newValue;
+    }
+    if (changes[PREF_KEY_NATIVE_MENU]) syncNativeMenu();
+    const tools = window[NAME];
+    if (changes[PREF_KEY_FRAME] && tools) tools.setCommercialFrame(getPref(PREF_KEY_FRAME, true));
+    if (hbnsRoot) {
+      hbnsRoot.querySelector('.hbns-switch-input').checked = getPref(PREF_KEY_NATIVE_MENU, true);
+      hbnsRoot.querySelector('.hbns-switch-input-frame').checked = getPref(PREF_KEY_FRAME, true);
+    }
+  });
+  const prefsReady = extensionApi.storage.local.get([PREF_KEY_NATIVE_MENU, PREF_KEY_FRAME])
+    .then(function (saved) {
+      for (const key of Object.keys(saved)) {
+        if (!(key in prefs)) prefs[key] = saved[key];
+      }
+      syncNativeMenu();
+    })
+    .catch(function (error) { console.error('读取花瓣扩展设置失败', error); });
+  // 图片操作与设置界面等待 DOM 和设置就绪。
+  async function bootDom() {
+    await prefsReady;
     initThumbTools();
     initCardActions();
     initDetailActions();
     initSidebarThumbActions();
     initSettingsUI();
+    if (settingsPending) openSettings();
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', bootDom, { once: true });
